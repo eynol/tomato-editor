@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<title>text editor</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<link rel="stylesheet" type="text/css" href="./bower_components/normalize-css/normalize.css">
+	<!-- mui theme -->
+	<!--<link href="/bower_components/mui/packages/npm/dist/css/mui.min.css" rel="stylesheet" type="text/css" />-->
+	<!--<script src="/bower_components/mui/packages/npm/dist/js/mui.min.js" charset="utf-8"></script>-->
+	<!--markdownjs-->
+	<!-- font-awesome -->
+	<link rel="stylesheet" href="./bower_components/font-awesome/css/font-awesome.min.css" type="text/css">
+	<link rel="stylesheet" href="./css/main.css" type="text/css">
+	<link rel="stylesheet" href="./css/lockscreen.css" type="text/css">
+	<link rel="stylesheet" type="text/css" href="./bower_components/Waves/dist/waves.css">
+	<!--<script src=""></script>-->
+	<script src="./bower_components/markdown/lib/markdown.js"></script>
+	<script>
+	//ability test
+	try{
+		var arr =[localStorage],
+		i =0 ,
+		l = arr.length;
+		for(;i<l;i++){
+			if(!arr[i]){
+				throw new Error("Your browser did't have "+arr[i])	
+			}
+		}
+	}catch(e){
+		var yes = confirm(e.message+"\nYour browser doesn't support this application.","whte","fadf");
+		if(yes){
+			location.href = "http://cn.bing.com/search?q=chrome+browser+download&qs=n&scope=web"
+		}
+	}
+	</script>
+
+</head>
+
+<body>
+	<div class="locker-main">
+		<div class="wallpaper">
+		</div>
+		<div class="ls-time">
+			<p><span class="t-cell">1</span><!--
+				--><span class="t-cell">6</span><!--
+				--><span class="t-cell">:</span><!--
+				--><span class="t-cell">2</span><!--
+				--><span class="t-cell">5</span><!--
+				--></p>
+		</div>
+		<div class="ls-btn">
+			<a href="javascript:;" id="unlock">UNLOCK</a>
+		</div>
+		<div class="ls-password" id="ls-input">
+			<input  type="password"  placeholder="PASSWORD">
+			<p>Please input your password and press enter to continue.</p>
+		</div>
+	</div>
+	<div class="app-main">
+		<header class="app-header">
+			<div class="top-panel color-primary">
+				<div class="logo top-panel-cell">
+					<a href="#">Tomato</a>
+				</div>
+				<div class="info-hub top-panel-cell">
+					<p id="js-info-hub">编辑中。。。。</p>
+				</div>
+				<div class="top-panel-cell">
+					<a href="javascript:;" id="js-o-lock">LOCK UP</a>
+					<a href="javascript:;" title="设置" id="js-o-setting"  ><i class="fa fa-gear"></i></a>
+					<span id="js-battery" style="display:none;"><i class="fa fa-battery-4"></i></span>
+					<span id="js-time-bar" style="display:none;">??:??</span>
+				</div>
+			</div>
+			<div class="folders color-primary">
+			<script type="text/html" id="tp-folders">
+			{{each list as folder i}}
+			<li draggable="true" {{if active==folder.id}} class="active"{{/if}}  data-id="{{folder.id}}" ><span>{{folder.name}}</span></li>
+			{{/each}}
+			<li draggable="true"><span class="new-folder">&nbsp;+&nbsp;</span></li>
+			</script>
+			<script type="text/html" id="tp-folder">
+					<li draggable="true"  class="active" data-id="{{id}}"><span>{{name}}</span></li>
+			</script>
+				<nav>
+					<ul id="js-folders-ul">
+						<li draggable="true" class="active"><span>hhhh</span></li>
+						<li draggable="true"><span data-id="123">hhhh1</span></li>
+						<li draggable="true"><span>hhhh2</span></li>
+						<li draggable="true"><span>hhhh3</span></li>
+						<li draggable="true"><span>hhhh4</span></li>
+						<li draggable="true"><span>hhhh5</span></li>
+						<li draggable="true"><span>hhhh6</span></li>
+						<li draggable="true"><span>hhhh7</span></li>
+						<li draggable="true"><span>hhhh8</span></li>
+						<li draggable="true"><span>hhhh9</span></li>
+						<li draggable="true"><span>hhhh10</span></li>
+						<li draggable="true"><span>hhhh11</span></li>
+						<li draggable="true"><span class="new-folder">&nbsp;+&nbsp;</span></li>
+					</ul>
+				</nav>
+			</div>
+		</header>
+		<div class="app-body">
+			<div class="app-body-left">
+				<p class="new-post-panel">
+					<!-- <a href="#"><i class="fa fa-plus"></i>新增</a> -->
+					<a class="new-post" id="js-new-post"><i class="fa fa-plus"></i></a>
+				</p>
+				<script type="text/html" id="tp-post">
+				<li draggable="true" data-id="{{id}}" class="active">
+				<p title="{{title}}" class="post-title"></p>
+				<p title="{{brief}}"  class="post-brief"></p>
+				<p title="{{date}}"  class="post-date"></p>
+				</li>
+				</script>
+				<script type="text/html" id="tp-posts">
+				{{each list as post i}}
+				<li draggable="true" data-id="{{post.id}}" class="{{if active == post.id}}active{{/if}} waves-effect waves-light"  >
+				<p title="{{post.title}}" class="post-title"></p>
+				<p title="{{post.brief}}" class="post-brief"></p>
+				<p title="{{post.date}}" class="post-date"></p>
+				</li>
+				{{/each}}
+				</script>
+				<div class="posts">
+					<ul id="js-posts">
+						<li draggable="true" class="active waves-effect" data-id="123">
+							<p title="Artcla ite" class="post-title"></p>
+							<p title="this is bref content" class="post-brief"></p>
+							<p title="2016.1.4" class="post-date"></p>
+						</li>
+						<li draggable="true " class="waves-effect">
+							<h1 title="Fin De Acne"></h1>
+							<p title="this is bref content"></p>
+							<span title="2016.1.4"></span>
+						</li>
+						<li draggable="true" class="waves-effect">
+							<h1 title="Stan od cage"></h1>
+							<p title="this is bref content"></p>
+							<span title="2016.1.4"></span>
+						</li>
+					</ul>
+				</div>
+			</div>
+			<div class="app-body-right">
+				<div class="title">
+					<input type="text" id="js-title" placeholder="请输入文件名">
+					<p class="color-gray">
+						<label id="js-date-label">2016年10月12日</label>
+						<label id="js-word-count">2300字</label>
+						<span class="operations">
+                            <a href="javascript:;"  title="保存(Ctrl+S)" id="js-o-save"><i class="fa fa-save"></i></a>
+                            <a href="javascript:;"  title="撤销(Ctrl+Z)" id="js-o-undo"><i class="fa fa-undo"></i></a>
+                            <a href="javascript:;"  title="重做(Ctrl+Y)" id="js-o-redo"><i class="fa fa-repeat"></i></a>
+                            <a href="javascript:;"  title="历史纪录" id="js-o-history"><i class="fa fa-clock-o"></i></a>
+                            <a href="javascript:;"  title="打开预览" id="js-o-preview"><i class="fa fa-columns"></i></a>
+                            <a href="javascript:;"  title="飞行模式" id="js-o-air-mode"><i class="fa fa-plane"></i></a>   
+                        </span>
+					</p>
+				</div>
+				<div class="workspace edit_preview">
+					<textarea class="edit-area" name="edit" rows="8" cols="40" id="js-edit"></textarea>
+					<div class="preview" id="js-preview"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+<script type="text/javascript" data-main="js/app" src="./bower_components/requirejs/require.js"></script>
+
+</html>

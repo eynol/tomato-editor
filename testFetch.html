@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+<body>
+    <script>
+          fetch("./api/getFolders.json", {
+                    mode: 'no-cors'
+                }).then(function (response) {
+                    return response.json();
+                }).then(function(re){   
+                   fun1("renderFolder",re.data);
+                }).catch(function (err) {
+                    console.log("Fetch错误:" + err);
+                });
+                function fun1(name,obj){
+                    alert(obj[0].name);
+                }
+    </script>
+</body>
+</html>

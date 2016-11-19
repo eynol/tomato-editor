@@ -1,0 +1,25 @@
+{
+  "name": "tomato-editor",
+  "version": "0.3.0",
+  "description": "my markdown text editor",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vankai/tomato-editor.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vankai/tomato-editor/issues"
+  },
+  "homepage": "https://github.com/vankai/tomato-editor#readme",
+  "devDependencies": {
+    "gulp": "^3.9.1"
+  },
+  "dependencies": {
+    "gulp-usemin": "^0.3.25"
+  }
+}

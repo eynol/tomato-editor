@@ -1,0 +1,377 @@
+
+/* ******************   *\
+    # Global 
+\* ******************  */
+:root{
+    --color-tomato: #de6868;
+}
+
+/*   font family  */
+body,
+html {
+    font-family: -apple-system, "Helvetica Neue", Arial, "PingFang SC", "lucida grande", "lucida sans unicode", lucida, helvetica, "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
+}
+
+a:hover {
+    text-decoration: none;
+}
+
+.color-primary{
+  background-color:var(--color-tomato);
+  color: white;
+}
+.color-primary a{color: white;}
+
+.color-gray{
+  color: #d9d9d9;
+}
+
+
+/* ******************   *\
+    # main 
+\* ******************  */
+.app-main {
+    display: flex;
+    flex-flow: column nowrap;
+    height: 100vh;
+    width: 100vw;
+}
+
+
+.top-panel {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    padding: 0 30px;
+}
+
+.top-panel-cell {
+    flex-grow: 1;
+    width: 33.3333333333%;
+    height: 40px;
+    line-height: 40px;
+}
+
+.top-panel .top-panel-cell:nth-last-child(1) {
+    text-align: right;
+}
+
+.info-hub {
+    text-align: center;
+}
+
+.top-panel p {
+    margin: 0;
+}
+
+
+
+
+/* ******************   *\
+    # folder
+\* ******************  */
+.folders {
+  
+    color: #FFF;
+}
+
+.folders ul {
+    margin: 0;
+    list-style: none;
+    display: block;
+    width: 100vw;
+    overflow: auto;
+    white-space: nowrap;
+    box-sizing: border-box;
+}
+
+.folders li {
+    display: inline-block;
+    box-sizing: border-box;
+}
+
+.folders li span {
+    display: block;
+    cursor: pointer;
+    border-bottom: 3px solid #ff956e;
+    line-height: 28px;
+    padding: 5px 12px 2px;
+    border-radius: 5px 5px 0 0;
+    opacity: .75;
+}
+
+.folders li span:hover {
+    background-color: #be5c5c;
+    opacity: 1;
+}
+
+.folders li.active span {
+    background-color: white;
+    border-color: white;
+    color: #00d1b2;
+    opacity: 1;
+}
+
+.folders li.ondrag span {
+    background-color: #be5c5c;
+}
+
+.folders input,
+.folders input:focus {
+    border: 0;
+    outline: 0;
+    height: 28px;
+    font: inherit;
+    border-bottom: 3px solid #ff956e;
+    border-radius: 5px 5px 0 0;
+    text-align: center;
+}
+
+
+/* ******************   *\
+    # body 
+\* ******************  */
+.app-body {
+    margin: 0;
+    flex-grow: 1;
+    background-color: white;
+    display: flex;
+    flex-direction: row;
+}
+
+.app-body-left {
+    width: 300px;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.app-body-right {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    justify-content: space-between;
+}
+
+
+/* ******************   *\
+    # post 
+\* ******************  */
+
+
+
+.new-post {
+    display: inline-block;
+    padding: 20px;
+    cursor: pointer;
+}
+
+.posts {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    margin-top: 50px;
+}
+
+.new-post-panel {
+    position: absolute;
+    z-index: 1;
+    display: block;
+    margin: 0;
+    left: 0;
+    right: 0;
+    top: 0;
+    text-align: center;
+}
+
+.new-post-panel a {
+    width: 90%;
+}
+
+.posts ul {
+    height: 100%;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    /*border-right: solid 1px rgba(0, 0, 0, 0.1);*/
+    border-left-width: 0;
+    overflow: auto;
+}
+
+.posts li:nth-child(1) {
+    border-top: solid 1px rgba(0, 0, 0, 0.1);
+}
+
+.posts li {
+    position: relative;
+     box-sizing: border-box;
+    height: 100px;
+    width: 100%;
+    padding: 10px 20px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+    margin-top: 1px;
+    transition: .1s;
+    cursor: pointer;
+}
+
+
+.posts  p {
+    margin: 0;
+}
+
+.posts  p:before {
+    content: attr(title);
+}
+
+p.post-title {
+    font-size: 18px;
+    font-weight: 500;
+    margin: 12px 0 16px;
+}
+
+p.post-brief {
+    font-size: 13px;
+    color: rgba(0, 0, 0, .7);
+   
+}
+
+p.post-date {
+    font-size: 11px;
+    color: gray;
+    position: absolute;
+    bottom: 5px;
+   
+}
+.post-date,
+.post-title,
+.post-brief{
+     overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.posts li:hover {
+    box-shadow: 0 0 2px rgba(0, 0, 0, .12), 0 2px 2px rgba(0, 0, 0, .2);
+}
+
+.posts li.active {
+    background-color: var(--color-tomato);
+}
+
+.posts li.active p {
+    color: white;
+}
+
+
+
+
+
+/* ******************   *\
+    # preview mode
+\* ******************  */
+.workspace {
+    position: relative;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: row;
+    padding: 0 10px 10px;
+}
+
+.title {
+    padding: 0 30px;
+}
+
+.title p {
+    margin: 5px 0 0 0;
+}
+
+.title label {
+    margin-left: 10px;
+}
+
+.title input[type=text] {
+    display: block;
+    height: 70px;
+    background-color: transparent;
+    color: rgba(0, 0, 0, .87);
+    border: none;
+    border-bottom: 1px solid rgba(0, 0, 0, .12);
+    outline: 0;
+    width: 100%;
+    font-family: inherit;
+    font-size: 30px;
+    line-height: 30px;
+    padding: 20px 5px 5px;
+    box-sizing: border-box;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    box-shadow: none;
+    border-radius: 0;
+    background-image: none;
+}
+
+.title input[type=text]:focus {
+    border-color: #2196F3;
+    height: 71px;
+    border-width: 2px;
+    margin-bottom: -1px;
+}
+
+#js-word-count:after{
+    content:" 字";
+}
+.operations {
+    margin-left: 20px;
+    font-size: 20px;
+    opacity: .2;
+    transition: opacity .3s;
+}
+
+.operations a {
+    display: inline-block;
+    margin-left: 5px;
+    color: gray;
+    transition: .1s;
+}
+.operations a:hover{
+    transform: translate(0,5px), scale(1.1,1.1);
+}
+.operations a:active{
+    color:var(--color-tomato);
+}   
+
+.title:hover .operations {
+    opacity: 1;
+}
+
+textarea.edit-area,
+.preview {
+    position: relative;
+    box-sizing: border-box;
+    resize: none;
+    flex: 50% 1;
+    border: 0;
+    outline: 0;
+    padding: 20px 30px;
+    color: #2f2f2f;
+    font-size: 16px;
+    font-weight: normal;
+    line-height: 1.7;
+    transition: .3s;
+    font-family: -apple-system, "Helvetica Neue", Arial, "PingFang SC", "lucida grande", "lucida sans unicode", lucida, helvetica, "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
+}
+
+
+.preview {
+    padding-top:0;
+    overflow: auto;
+    word-wrap: break-word;
+    word-break: break-word;
+}
+
+
+/* ******************   *\
+    #  
+\* ******************  */
