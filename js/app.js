@@ -10,6 +10,7 @@ requirejs.config({
         workspace:'workspace',
         header:'header',
         notify:'notify',
+        messager:'messager',
         LS:'LS',
         Waves:'./../bower_components/Waves/dist/waves',
         template:"./../bower_components/art-template/dist/template",

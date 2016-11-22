@@ -1,4 +1,4 @@
-define(['require', 'exports', 'module', 'LS'], function (require, exports, module, LS) {
+define(['require', 'exports', 'module', 'LS','messager'], function (require, exports, module, LS,messager) {
     'use strict';
     ///
     /// subscriber / publisher patterns
@@ -199,6 +199,9 @@ define(['require', 'exports', 'module', 'LS'], function (require, exports, modul
         console.log(err);
     }
 
+    W.send  = (obj)=>{
+        messager.send(obj);
+    }
    
 
 

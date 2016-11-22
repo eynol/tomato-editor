@@ -3,7 +3,8 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics'], function (requir
     var H = module.exports,
         lock_btn = watcher.$$("js-o-lock"),
         info_hub = watcher.$$("js-info-hub"),
-        status = watcher.status;
+        status = watcher.status,
+        current_status={};
 
 
     H.init = () => {
@@ -17,6 +18,12 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics'], function (requir
         })
     }
     watcher.listen("statusChange", () => {
+        if (current_status.mode == status.mode && current_status.saved == status.saved) {
+            return;
+        }
+        current_status.mode = status.mode;
+        current_status.saved = status.saved;
+
         var mode = status.mode == "both" ?
             "普通模式" :
             status.mode == "edit" ?
@@ -29,7 +36,6 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics'], function (requir
         }, {
             duration: 300,
             complete: () => {
-                
                 info_hub.textContent = "[" + mode + ":" + saved + "]";
 
                 dynamics.animate(info_hub, {

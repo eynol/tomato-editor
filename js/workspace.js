@@ -215,14 +215,9 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics'], function (requir
                 case "preiview":
                     {
                         watcher.activeMode("edit");
-
-
                         //hide preview
                         W.halfHide(pr);
                         W.halfShow(txa);
-
-
-
                         break;
                     }
                 case "edit":

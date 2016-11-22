@@ -105,6 +105,9 @@ define(['require', 'exports', 'module', 'watcher', 'Waves', 'template', "dynamic
 
 
     function initPage() {
+
+        // watcher.send("getAllFolders");
+
         var query = watcher.toQuery({
             fid: status.id_folder,
             pid: status.id_post,

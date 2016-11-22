@@ -11,7 +11,7 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics', 'Waves'], functio
     L.init = () => {
         dom();
 
-
+         watcher.send("getAllFolders");
     }
 
 
