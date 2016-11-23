@@ -1,4 +1,4 @@
-define(['require', 'exports', 'module', 'LS','messager'], function (require, exports, module, LS,messager) {
+define(['require', 'exports', 'module', 'LS'], function (require, exports, module, LS) {
     'use strict';
     ///
     /// subscriber / publisher patterns
@@ -110,24 +110,24 @@ define(['require', 'exports', 'module', 'LS','messager'], function (require, exp
         W.trigger("statusChange")
     }
 
-    W.unsaved = ()=>{
+    W.unsaved = () => {
         status.saved = false;
         W.trigger("statusChange")
     }
-    W.saved = ()=>{
+    W.saved = () => {
         status.saved = true;
         W.trigger("statusChange")
     }
     W.savePost = (post) => {
 
-         W.saved();
+        W.saved();
     }
     W.activeMode = (mode) => {
         LS.set("mode", mode);
         status.mode = mode;
         W.trigger("statusChange")
     }
-    W.setPostTitle = (post_title)=>{
+    W.setPostTitle = (post_title) => {
         LS.set("post_title", post_title);
         status.post_title = post_title;
         W.trigger("statusChange")
@@ -149,7 +149,7 @@ define(['require', 'exports', 'module', 'LS','messager'], function (require, exp
 
     if (status.saved !== false) {
         W.saved();
-        LS.set("saved",true);
+        LS.set("saved", true);
     }
     status.last_edit_date = LS.get("last_edit_date");
 
@@ -162,7 +162,7 @@ define(['require', 'exports', 'module', 'LS','messager'], function (require, exp
 
 
 
-   
+
 
 
     W.tag = (el) => {
@@ -199,13 +199,39 @@ define(['require', 'exports', 'module', 'LS','messager'], function (require, exp
         console.log(err);
     }
 
-    W.send  = (obj)=>{
-        messager.send(obj);
+
+    /**
+     * pretent we have a serviceWorker
+     */
+
+    var serviceWorker = new Worker("./../sw.js");
+
+    serviceWorker.onmessage = function (e) {
+        if (typeof e.data == "string") {
+            let msg = JSON.parse(e.data);
+            console.log(msg);
+            for (let i = 0; i < msg.intent.length; i++) {
+                W.trigger(msg.intent[i], msg)
+            }
+        }
     }
-   
 
 
 
+
+    W.send = (obj) => {
+        serviceWorker.postMessage(JSON.stringify(obj))
+    }
+
+
+
+
+
+
+
+    /**
+     * fullscreenchange function 
+     **/
     function fullscreenchange(e) {
         if (!e.isTrusted) return false;
         if (status.isAirMode) {

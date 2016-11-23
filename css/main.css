@@ -81,6 +81,7 @@ a:hover {
     display: block;
     width: 100vw;
     overflow: auto;
+    overflow-y: hidden;
     white-space: nowrap;
     box-sizing: border-box;
 }
@@ -88,6 +89,9 @@ a:hover {
 .folders li {
     display: inline-block;
     box-sizing: border-box;
+}
+.folders li:nth-last-child(1){
+    margin-right:80px;
 }
 
 .folders li span {
@@ -192,6 +196,7 @@ a:hover {
 }
 
 .posts ul {
+        box-sizing: border-box;
     height: 100%;
     list-style: none;
     margin: 0;
@@ -199,6 +204,7 @@ a:hover {
     /*border-right: solid 1px rgba(0, 0, 0, 0.1);*/
     border-left-width: 0;
     overflow: auto;
+    overflow-x: hidden;
 }
 
 .posts li:nth-child(1) {

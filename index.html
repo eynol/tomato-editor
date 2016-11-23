@@ -77,10 +77,10 @@
 			</div>
 			<div class="folders color-primary">
 			<script type="text/html" id="tp-folders">
-			{{each list as folder i}}
-			<li draggable="true" {{if active==folder.id}} class="active"{{/if}}  data-id="{{folder.id}}" ><span>{{folder.name}}</span></li>
+			{{each folders.list as folder i}}
+			<li draggable="true" {{if folders.active==folder.id}} class="active"{{/if}}  data-id="{{folder.id}}" ><span>{{folder.name}}</span></li>
 			{{/each}}
-			<li draggable="true"><span class="new-folder">&nbsp;+&nbsp;</span></li>
+			<li draggable="true" id="js-new-folder"><span class="new-folder">&nbsp;+&nbsp;</span></li>
 			</script>
 			<script type="text/html" id="tp-folder">
 					<li draggable="true"  class="active" data-id="{{id}}"><span>{{name}}</span></li>
@@ -99,7 +99,7 @@
 						<li draggable="true"><span>hhhh9</span></li>
 						<li draggable="true"><span>hhhh10</span></li>
 						<li draggable="true"><span>hhhh11</span></li>
-						<li draggable="true"><span class="new-folder">&nbsp;+&nbsp;</span></li>
+						<li draggable="true" id="js-new-folder"><span class="new-folder">&nbsp;+&nbsp;</span></li>
 					</ul>
 				</nav>
 			</div>
@@ -118,8 +118,8 @@
 				</li>
 				</script>
 				<script type="text/html" id="tp-posts">
-				{{each list as post i}}
-				<li draggable="true" data-id="{{post.id}}" class="{{if active == post.id}}active{{/if}} waves-effect waves-light"  >
+				{{each posts.list as post i}}
+				<li draggable="true" data-id="{{post.id}}" class="{{if posts.active == post.id}}active{{/if}} waves-effect waves-light"  >
 				<p title="{{post.title}}" class="post-title"></p>
 				<p title="{{post.brief}}" class="post-brief"></p>
 				<p title="{{post.date}}" class="post-date"></p>

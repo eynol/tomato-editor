@@ -1,7 +1,9 @@
 define(['require', 'exports', 'module', 'watcher', 'Waves', 'template', "dynamics", 'notify'], function (require, exports, module, watcher, Waves, template, dynamics) {
     'use strict';
     var F = exports,
-        status = watcher.status;
+        status = watcher.status,
+        domList = [],
+        indexMap = {}; //local index records
 
 
 
@@ -23,30 +25,32 @@ define(['require', 'exports', 'module', 'watcher', 'Waves', 'template', "dynamic
 
     watcher.listen("renameFolder", (folder) => {
         console.log("rename to " + folder.name, folder.id);
-        folder.then();
+        watcher.send({
+            intent: ["renameFolder"],
+            params: folder
+        });
     })
 
     //  new folder
     watcher.listen("clickNewFolder", () => {
 
-        var folder_id = "f_" + Date.now(),
-            html = template("tp-folder", {
-                id: "f_" + Date.now(),
-                name: "新建文件夹"
-            }),
-            new_folder_li = F.folders.querySelector('.new-folder').parentElement;
-
+        var folder_id = "f" + Date.now(),
+            newFolder = {
+                id: folder_id,
+                name: "新建文件夹",
+                index: F.folders.children.length - 1 // array index starts from 0
+            },
+            html = template("tp-folder", newFolder),
+            new_folder_li = F.folders.querySelector('.new-folder').parentElement,
+            newNode;
 
         new_folder_li.insertAdjacentHTML('beforeBegin', html);
+        newNode = new_folder_li.previousElementSibling;
 
-
-        //animate the new folder
-        new_folder_li = new_folder_li.previousElementSibling;
-
-        dynamics.css(new_folder_li, {
+        dynamics.css(newNode, {
             translateY: 50
         })
-        dynamics.animate(new_folder_li, {
+        dynamics.animate(newNode, {
             translateY: 0
         }, {
             type: dynamics.spring,
@@ -54,24 +58,40 @@ define(['require', 'exports', 'module', 'watcher', 'Waves', 'template', "dynamic
             friction: 435,
             duration: 1000,
             complete: () => {
-                dynamics.animate(new_folder_li, {
+                dynamics.animate(newNode, {
                     translateY: 0
                 });
             }
         });
 
-        watcher.trigger("clickFolder", {
-            id: folder_id
-        });
-        //TODO:new API
+        watcher.activeFolder(folder_id);
+
+        domList.push(newFolder);
+        indexMap[folder_id] = newFolder.index;
+
+        setTimeout(() => {
+            watcher.send({
+                intent: ["newFolder"],
+                params: newFolder
+            })
+        })
+
     })
-    watcher.listen("renderFolders", (json) => {
+    watcher.listen("renderFolders", (msg) => {
         var items;
 
         F.folders.innerHTML = "";
-        F.folders.insertAdjacentHTML('afterbegin', template("tp-folders", json));
+        F.folders.insertAdjacentHTML('afterbegin', template("tp-folders", msg));
 
+
+        domList = msg.folders.list;
+        indexMap = {};
+        for (let i in domList) {
+            indexMap[domList[i].id] = domList[i].index;
+        }
+        console.log(indexMap,domList);
         items = F.folders.children;
+
 
         // Animate each line individually
         for (var i = 0; i < items.length; i++) {
@@ -96,10 +116,10 @@ define(['require', 'exports', 'module', 'watcher', 'Waves', 'template', "dynamic
         }
 
 
-        watcher.activeFolder(json.active);
+        watcher.activeFolder(msg.folders.active);
         setTimeout(() => {
             watcher.trigger("foldersReady")
-        }, 1)
+        })
     })
 
 
@@ -108,21 +128,30 @@ define(['require', 'exports', 'module', 'watcher', 'Waves', 'template', "dynamic
 
         // watcher.send("getAllFolders");
 
-        var query = watcher.toQuery({
-            fid: status.id_folder,
-            pid: status.id_post,
-            t: Date.now()
+        // var query = watcher.toQuery({
+        //     fid: status.id_folder,
+        //     pid: status.id_post,
+        //     t: Date.now()
+        // });
+
+        watcher.send({
+            intent: ["getAllFolders"],
+            params: {
+                fid: status.id_folder,
+                pid: status.id_post,
+            }
         });
-        fetch("./api/getFolders.json?" + query)
-            .then(watcher.respToJSON)
-            .then((json) => {
-                setTimeout(() => {
-                    watcher.trigger("renderFolders", json.folders)
-                }, 0)
-                setTimeout(() => {
-                    watcher.trigger("renderPosts", json.posts)
-                }, 0);
-            }).catch(watcher.fetchError);
+
+        // fetch("./api/getFolders.json?" + query)
+        //     .then(watcher.respToJSON)
+        //     .then((json) => {
+        //         setTimeout(() => {
+        //             watcher.trigger("renderFolders", json.folders)
+        //         }, 0)
+        //         setTimeout(() => {
+        //             watcher.trigger("renderPosts", json.posts)
+        //         }, 0);
+        //     }).catch(watcher.fetchError);
 
     }
 
@@ -177,8 +206,10 @@ define(['require', 'exports', 'module', 'watcher', 'Waves', 'template', "dynamic
                         });
                     }
                 });
+                let id = el.dataset["id"];
+                watcher.activeFolder(id)
                 watcher.trigger("clickFolder", {
-                    id: el.dataset["id"]
+                    id: id
                 });
             }
 
@@ -281,7 +312,7 @@ define(['require', 'exports', 'module', 'watcher', 'Waves', 'template', "dynamic
                 return false
             }
             //  if the new node is "new folder" button , cancel the drop;
-            if (F.temp.children[0].id == "js-new-folder") {
+            if (F.temp.id == "js-new-folder") {
                 F.temp == null;
                 return false
             }
@@ -293,25 +324,29 @@ define(['require', 'exports', 'module', 'watcher', 'Waves', 'template', "dynamic
             var el = e.target,
                 getNewNode = function () {
                     return F.temp.parentElement.removeChild(F.temp);
-                };
+                },
+                oldIndex = indexMap[F.temp.dataset["id"]],
+                newIndex;
 
 
             switch (watcher.tag(el)) {
                 case "span":
                     {
 
+                        newIndex = indexMap[el.parentElement.dataset['id']];
                         el.parentElement.insertAdjacentElement('beforebegin', getNewNode());
                         break;
                     }
 
                 case "li":
                     {
-
+                        newIndex = indexMap[el.dataset['id']];
                         el.insertAdjacentElement('beforebegin', getNewNode())
                         break;
                     }
                 case "ul":
                     {
+                        newIndex = F.folders.children.length - 2;//it will insert before the node ,so it minus 2
                         F.folders.querySelector("#js-new-folder").insertAdjacentElement('beforebegin', getNewNode());
                         break;
                     }
@@ -322,10 +357,31 @@ define(['require', 'exports', 'module', 'watcher', 'Waves', 'template', "dynamic
 
             }
             F.temp == null;
-
-
+            F.updateIndex(oldIndex, newIndex);
         })
 
     }
 
+    F.updateIndex = (oldIndex, newIndex) => {
+        console.log(oldIndex,newIndex)
+        if (oldIndex == newIndex) return;
+        let diff = {},
+            i,
+            old = domList.splice(oldIndex, 1)[0];
+        domList.splice(newIndex, 0, old);
+
+        if (oldIndex < newIndex) {
+            for (i = oldIndex; i <= newIndex; i++) {
+                indexMap[domList[i].id] = i;
+                diff[domList[i].id] = i;
+            }
+        } else {
+            for (i = newIndex; i <= oldIndex; i++) {
+                indexMap[domList[i].id] = i;
+                diff[domList[i].id] = i;
+            }
+        }
+        console.log(diff)
+        watcher.send({intent:["updateFolderIndex"], params:diff});
+    }
 });

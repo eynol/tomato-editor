@@ -10,8 +10,6 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics', 'Waves'], functio
 
     L.init = () => {
         dom();
-
-         watcher.send("getAllFolders");
     }
 
 
@@ -105,7 +103,7 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics', 'Waves'], functio
         }, 500);
         setTimeout(() => {
             watcher.trigger("initPage");
-        }, 1);
+        });
     }
 
 

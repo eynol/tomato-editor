@@ -32,10 +32,10 @@ define(['require', 'exports', 'module', 'watcher', "template", "dynamics", 'Wave
 
     })
 
-    watcher.listen("renderPosts", (posts) => {
+    watcher.listen("renderPosts", (msg) => {
         var items;
         P.posts.innerHTML = "";
-        P.posts.insertAdjacentHTML('afterBegin', template("tp-posts", posts));
+        P.posts.insertAdjacentHTML('afterBegin', template("tp-posts", msg));
 
         items = P.posts.children;
         // Animate each line individually
@@ -65,9 +65,9 @@ define(['require', 'exports', 'module', 'watcher', "template", "dynamics", 'Wave
 
 
         watcher.trigger("postsReady");
-        watcher.activePost(posts.active);
+        watcher.activePost(msg.posts.active);
         watcher.trigger("clickPost", {
-            id: posts.active
+            id: msg.posts.active
         });
 
     })
@@ -89,6 +89,7 @@ define(['require', 'exports', 'module', 'watcher', "template", "dynamics", 'Wave
             }
             var posts = P.posts,
                 li,
+                li_list,
                 html,
                 newNode;
 
@@ -100,12 +101,20 @@ define(['require', 'exports', 'module', 'watcher', "template", "dynamics", 'Wave
                 duration: 782,
                 bounciness: 676,
                 elasticity: 470,
-                returnsToSelf: true
+                returnsToSelf: true,
+                complete: () => {
+                    dynamics.animate(e.target, {
+                        translateY: 0
+                    })
+                }
             });
 
 
-            li = posts.querySelector(".active");
-            if (li) li.classList.remove("active");
+            li_list = posts.querySelectorAll(".active");
+            for (let i = 0, len = li_list.length; i < len; i++) {
+                li_list[i].classList.remove("active");
+            }
+
             html = template("tp-post", {
                 title: "无标题文档",
                 id: "a" + Date.now(),
