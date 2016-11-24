@@ -1,33 +1,40 @@
  //TODO: make it a server worker 
 
-'use strict';
+ 'use strict';
  var dbName = "toMat0",
      version = 3,
      folder_name = "folders",
-     post_name = "posts";
+     post_name = "posts",
+     content_name = "pbody";
 
 
 
 
- var initFolders = [{
+ var initFolders = {
      id: "f" + Date.now(),
      name: "默认文件夹",
      index: 0
- }]
+ }
 
- var initPosts = [{
-     id: "p1234",
-     fid:initFolders[0].id,
+ var initPosts = {
+     id: "p" + Date.now(),
+     fid: initFolders.id,
      title: "How to Use",
+     brief: "ds",
      index: 0,
-     created:Date.now(),
-     modified:Date.now()
- }]
+     created: Date.now(),
+     modified: Date.now()
+ }
 
-getDB();
+ var initContent = {
+     id: "c" + Date.now(),
+     pid: initPosts.id,
+     value: "test content"
+ }
 
-function getDB() {
-     
+
+ function getDB() {
+
      return new Promise((resolve, reject) => {
          let request = indexedDB.open(dbName, version);
          request.onupgradeneeded = onupgradeneeded;
@@ -35,7 +42,6 @@ function getDB() {
              reject(e);
          }
          request.onsuccess = function (e) {
-             console.log("getDB success")
              resolve(e.target.result);
          }
      })
@@ -68,12 +74,10 @@ function getDB() {
          });
      }
 
-
-
      /**
       * folders
       */
-       console.log("update");
+
      if (!(db.objectStoreNames.contains(folder_name))) {
 
          let folders = db.createObjectStore(folder_name, {
@@ -84,19 +88,15 @@ function getDB() {
              unique: true
          });
 
-         folders.createIndex("name", "name", {
+         folders.createIndex("index", "index", {
              unique: false
          });
-        
-         console.log("in update",folders);
-         folders.transaction.addEventListener ("complete",function (event) {
+
+         console.log("in update", folders);
+         folders.transaction.addEventListener("complete", function (event) {
              // Store values in the newly created objectStore.
-             let obj = db.transaction(folder_name, "readwrite").objectStore(folder_name);
-               console.log("in update");
-             for (let i in initFolders) {
-                 obj.add(initFolders[i]);
-                 console.log(i);
-             }
+             db.transaction(folder_name, "readwrite").objectStore(folder_name).add(initFolders);
+
          });
      }
 
@@ -116,16 +116,39 @@ function getDB() {
              unique: false
          });
 
+         posts.createIndex("index", "index", {
+             unique: false
+         });
          posts.createIndex("title", "title", {
              unique: false
          });
 
-         posts.transaction.addEventListener("complete" , function (event) {
+         posts.transaction.addEventListener("complete", function (event) {
              // Store values in the newly created objectStore.
-             let obj = db.transaction(post_name, "readwrite").objectStore(post_name);
-             for (let i in initPosts) {
-                 obj.add(initPosts[i]);
-             }
+             db.transaction(post_name, "readwrite").objectStore(post_name).add(initPosts);
+         });
+     }
+
+
+     /**
+      * content
+      */
+     if (!db.objectStoreNames.contains(content_name)) {
+
+         let posts = db.createObjectStore(content_name, {
+             keyPath: "id"
+         });
+
+         posts.createIndex("id", "id", {
+             unique: true
+         });
+         posts.createIndex("pid", "pid", {
+             unique: false
+         });
+
+         posts.transaction.addEventListener("complete", function (event) {
+             // Store values in the newly created objectStore.
+             db.transaction(content_name, "readwrite").objectStore(content_name).add(initContent);
          });
      }
 
@@ -144,37 +167,145 @@ function getDB() {
  }
  const _Post = {
      _getAllPost(params, ret) {
-         return getDB().then((db) => {
-             return db
-         }).then(function (db) {
-             return new Promise(function (resolve, reject) {
-                 let posts = db.transaction(post_name, "readonly").objectStore(post_name),
-                     list = [],
-                     cursor,
-                     hit = false;
+         return new Promise(function (resolve, reject) {
+             ret.posts = {};
 
-                 ret.posts = {};
+             /***
+              * in params, there are two parameters,fid and pid.
+              * fid must be works, and the pid may be null, so there is two kind situations
+              * 1.pid is not null. return all posts(by fid) and make the pid actived(by pid); 
+              * 2.pid is null. return all post(by fid) and make the post who's index equals 0 actived 
+              * But if it's the first time to use ,the fid and pid is null.
+              **/
 
-                 posts.openCursor().onsuccess = function (e) {
-                     cursor = e.target.result;
-                     if (cursor) {
-                         if (cursor.key == params.pid) hit = true;
-                         list.push(cursor.value);
-                         cursor.continue();
-                     } else {
-                         list.sort(sortByIndex);
-                         if (hit) {
-                             ret.posts.active = params.pid
-                         } else {
-                             if (list.length != 0)
-                                 ret.posts.active = list[0].id;
+             //define the normal way's solution (the fid must be exist)
+             //
+             function _get_posts_by_fid(fid, pid) {
+                 return new Promise((_resolve, _reject) => {
+                     //in this promis, don't resolve
+                     getDBobject(post_name, "readonly").then((dbPost) => {
+
+                         let req = dbPost.index("fid").getAll(IDBKeyRange.only(fid));
+                         req.onsuccess = (e) => {
+                             let list = e.target.result;
+                             list.sort(sortByIndex);
+                             ret.posts.list = list;
+                             //ret.posts.active = pid;
+                             // do not resolve the active
+                             ret.intent.push("renderPosts");
+                             _resolve(ret)
                          }
-                         ret.intent.push("renderPosts");
-                         ret.posts.list = list;
-                         resolve(ret);
+
+                         req.onerror = (e) => {
+                             _reject(e);
+                         }
+                     })
+
+                 }).then((_ret) => {
+                     //in this promise ,we solve the pid's problem
+                     if (pid != null) {
+                         _ret.posts.active = pid;
+                         return Promise.resolve(_ret);
+                     } else {
+                         return new Promise((_resolve, _reject) => {
+                             //let's  get the post who's index equals 0
+                             getDBobject(post_name, "readonly").then((dbPost4index) => {
+                                 let req = dbPost4index.index("index").openKeyCursor(IDBKeyRange.only(0));
+                                 req.onsuccess = (e) => {
+                                     let _cursor = e.target.result;
+                                     if (_cursor) {
+                                         //we get the actived pid
+                                         _ret.posts.active = _cursor.primaryKey;
+                                         _resolve(_ret);
+                                     } else {
+                                         _reject(new Error("no post index equals 0 ,the posts' index is messed"))
+                                     }
+                                 }
+                                 req.onerror = (e) => {
+                                     _reject(e)
+                                 }
+                             })
+                         })
+                     }
+
+                 })
+             }
+             //let start to solve our problem
+             if (params.fid == null) {
+                 //first time 
+                 //we should get the folder's fid (index == 0),and then get all posts. Then active the post(index == 0)
+                 getDBobject(folder_name, "readonly").then(function (folderdb) {
+                     let index = folderdb.index("index"),
+                         range = IDBKeyRange.only(0);
+                     index.openKeyCursor(range).onsuccess = (e) => {
+                         let fid = e.target.result.primaryKey;
+                         //we get the fid and then solve it in  normal way,
+                         resolve(_get_posts_by_fid(fid, params.pid))
+                     }
+                 })
+
+             } else {
+                 //fid is not null let's use it
+                 resolve(_get_posts_by_fid(params.fid, params.pid))
+             }
+
+         });
+
+     },
+     _newPost(params, ret) {
+         //once new a post all of posts' index will plus 1,then we add the new post
+         return getDBobject(post_name).then((dbPost)=>{
+             return new Promise((resolve,reject)=>{
+                 let req = dbPost.index("fid").openCursor(IDBKeyRange.only(params.fid)),
+                        func_error = (e)=>{reject(e)};
+                 req.onsuccess = (e)=>{
+                     let cursor = e.target.result;
+                     if(cursor){
+                         let post = cursor.value;
+                         post.index +=1;
+                         dbPost.put(post).onsuccess = (e)=>{
+                             cursor.continue();
+                         } 
+                     }else{
+                         dbPost.add(params).onsuccess = (e)=>{
+                             resolve("ok")
+                         }
                      }
                  }
-             });
+                 req.onerror = func_error;
+             })
+         })
+     },
+     _updateIndex(params,ret){
+          return getDBobject(post_name).then((dbPost) => {
+             return new Promise((resolve, reject) => {
+                 let cursor;
+                 dbPost.openCursor().onsuccess = (e) => {
+                     cursor = e.target.result;
+                     if (cursor) {
+
+                         if (params[cursor.key] != undefined) {
+                             dbPost.get(cursor.key).onsuccess = (e) => {
+                                 let f = e.target.result;
+                                 f.index = params[cursor.key];
+                                 let req = dbPost.put(f);
+                                 req.onsuccess = (e) => {
+                                     cursor.continue();
+                                 }
+                                 req.onerror = (e) => {
+                                     reject(e)
+                                 }
+                             }
+                         } else {
+                             cursor.continue()
+                         }
+                     } else {
+                         ret.intent.push("notify");
+                         ret.info = "success!";
+                         resolve(ret)
+                     }
+                 }
+             })
          })
      }
  }
@@ -188,56 +319,58 @@ function getDB() {
          })
      },
      _getAllFolders(params, ret) {
-         return getDB().then((db) => {
-             return db
-         }).then(function (db) {
-             return new Promise(function (resolve, reject) {
-                 let folders = db.transaction(folder_name, "readonly").objectStore(folder_name),
-                     list = [],
-                     cursor,
-                     hit = false;
+         return new Promise(function (resolve, reject) {
+             //init our folders
+             ret.folders = {};
+             /***
+              * In params, there are two parameters,fid and pid.
+              * fid must be works,for the length of folders' length mustn't less than 1.
+              * That's in normal situation,but if it's the first time to use,the fid is null;
+              * 1.fid is not null,return all folders and make the folder(== fid) actived.
+              * 2.fid is null ,return all folders and make the folder(index == 0) actived.
+              **/
 
-                ret.folders = {};
 
-                folders.getAll().onsuccess = (e)=>{
-                    let list = e.target.result;
-                    list.sort(sortByIndex);
-                    folders.get(params.fid).onsuccess = (e)=>{
-                        if(e.target.result!=null){
-                            ret.folders.active = params.fid
-                        }else{
-                            ret.folders.active = list[0].id;
-                            //setTimeout(strategy.getPosts({pid:list[0].id}))
-
-                        }
-                         ret.intent.push("renderFolders");
-                         ret.folders.list = list;
-                         resolve(ret);
-                    }
-                }
-                //  folders.openCursor().onsuccess = function (e) {
-                //      cursor = e.target.result;
-                //      if (cursor) {
-                //          if (cursor.key == params.fid) hit = true;
-                //          list.push(cursor.value);
-                //          cursor.continue();
-                //      } else {
-                //          list.sort(sortByIndex);
-                //          if (hit) {
-                //              ret.folders.active = params.fid
-                //          } else {
-                //              if (list.length == 0) reject(new Error("no folder exists!"));
-                //              ret.folders.active = list[0].id;
-                //          }
-                //          ret.intent.push("renderFolders");
-                //          ret.folders.list = list;
-                //          resolve(ret);
-                //      }
-
-                //  }
-             });
-
+             //in this promise ,we do not solve the active
+             getDBobject(folder_name).then((dbFolder) => {
+                 dbFolder.getAll().onsuccess = (e) => {
+                     let list = e.target.result;
+                     list.sort(sortByIndex);
+                     ret.intent.push("renderFolders");
+                     ret.folders.list = list;
+                     resolve(ret);
+                 }
+             })
+         }).then((_ret) => {
+             //we solve the active here
+             if (params.fid != null) {
+                 _ret.folders.active = params.fid;
+                 return Promise.resolve(_ret)
+             } else {
+                 //we have to get the folder who's index eqauls 0
+                 return new Promise((_resolve, _reject) => {
+                     //let's  get the post who's index equals 0
+                     getDBobject(folder_name, "readonly").then((dbFolder4Index) => {
+                         let req = dbFolder4Index.index("index").openKeyCursor(IDBKeyRange.only(0));
+                         req.onsuccess = (e) => {
+                             let _cursor = e.target.result;
+                             if (_cursor) {
+                                 //we get the actived pid
+                                 _ret.folders.active = _cursor.primaryKey;
+                                 _resolve(_ret);
+                             } else {
+                                 _reject(new Error("no post index equals 0 ,the folders' index is messed"))
+                             }
+                         }
+                         req.onerror = (e) => {
+                             _reject(e)
+                         }
+                     })
+                 })
+             }
          })
+
+
      },
      _renameFolder(params, ret) {
          return getDBobject(folder_name).then((folder) => {
@@ -260,17 +393,17 @@ function getDB() {
          })
      },
      _deleteFolder(params, ret) {
-         return getDBobject(folder_name).then((folders)=>{
-             return new Promise((resolve,reject)=>{
-                 let req =  folders.delete(params.id);
-                 req.onsuccess = (e)=>{
+         return getDBobject(folder_name).then((folders) => {
+             return new Promise((resolve, reject) => {
+                 let req = folders.delete(params.id);
+                 req.onsuccess = (e) => {
                      ret.intent.push("notify");
-                     ret.info = "delete "+ params.id +"successfully!";
+                     ret.info = "delete " + params.id + "successfully!";
                      resolve(ret)
-                  };
-                  req.onerror = (e)=>{
-                      reject(e)
-                  }
+                 };
+                 req.onerror = (e) => {
+                     reject(e)
+                 }
              })
          })
      },
@@ -310,6 +443,50 @@ function getDB() {
 
  };
 
+ const _Content = {
+     _getContent(params, ret) {
+         return getDBobject(content_name).then((dbContent) => {
+             return new Promise((resolve, reject) => {
+
+                 let req = dbContent.index("pid").openCursor(IDBKeyRange.only(params.pid));
+                 req.onsuccess = (e) => {
+
+                     let content = e.target.result;
+                     if (content) {
+                         ret.content = content.value
+                     } else {
+                         ret.content = ""
+                     }
+                     ret.intent.push("renderContent");
+                     resolve(ret)
+                 }
+                 req.onerror = (e) => {
+                     reject(e)
+                 }
+             })
+         })
+     },
+     _updateContent(params, ret) {
+         return getDBobject(content_name).then((dbContent) => {
+             return new Promise((resolve, reject) => {
+
+                 let req = dbContent.get(params.id);
+                 req.onsuccess = (e) => {
+                     let content = e.target.result;
+                     content.value = params.value
+                     dbContent.put(content).onsuccess = (e) => {
+                         ret.intent.push("notify");
+                         ret.info = "更新内容成功";
+                         resolve(ret)
+                     }
+                 }
+                 req.onerror = (e) => {
+                     reject(e)
+                 }
+             })
+         })
+     }
+ }
 
 
 
@@ -333,8 +510,20 @@ function getDB() {
      updateFolderIndex(params, ret) {
          return _Folder._updateIndex(params, ret).then(returnMSG)
      },
-     deleteFolder(params,ret){
+     deleteFolder(params, ret) {
 
+     },
+     getPosts(params, ret) {
+         return _Post._getAllPost(params, ret).then(returnMSG)
+     },
+     getContent(params, ret) {
+         return _Content._getContent(params, ret).then(returnMSG)
+     },
+     newPost(params, ret) {
+         return _Post._newPost(params, ret)
+     },
+     updatePostIndex(params,ret){
+         return _Post._updateIndex(params,ret).then(returnMSG)
      }
  }
 

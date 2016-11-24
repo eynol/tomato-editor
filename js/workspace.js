@@ -4,7 +4,7 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics'], function (requir
 
     var W = exports,
         status = watcher.status,
-        oriPost;
+        oriPost={};
 
 
 
@@ -34,40 +34,42 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics'], function (requir
 
 
 
-    watcher.listen("clickPost", (post) => {
-        W.getPost(post.id);
-        watcher.activePost(post.id);
-    })
+    // watcher.listen("clickPost", (post) => {
+    //     watcher.activePost(post.id);
+    //     W.getPost(post.id);
+    // })
 
-    /*
-             get post fuction
-    */
-    W.getPost = (pid) => {
-        if ((!!pid) == false) {
-            watcher.trigger("noContent");
-            return;
-        }
-        fetch("./api/getPost.json?" + watcher.toQuery({
-                id: pid,
-                t: Date.now()
-            }))
-            .then(watcher.respToJSON)
-            .then((json) => {
-                oriPost = json;
-                watcher.trigger('renderPost', json);
-            }).catch(watcher.fetchError)
-    }
+    // /*
+    //          get post fuction
+    // */
+    // W.getPost = (pid) => {
+    //     if ((!!pid) == false) {
+    //         watcher.trigger("noContent");
+    //         return;
+    //     }
+    //     fetch("./api/getPost.json?" + watcher.toQuery({
+    //             id: pid,
+    //             t: Date.now()
+    //         }))
+    //         .then(watcher.respToJSON)
+    //         .then((json) => {
+    //             oriPost = json;
+    //             watcher.trigger('renderPost', json);
+    //         }).catch(watcher.fetchError)
+    // }
 
     /*
             subscribe renderPost 
     */
-    watcher.listen("renderPost", (post) => {
-        W.input_title.value = post.title;
-        W.textarea.value = post.content;
-        W.MDworker.postMessage(post.content);
-        W.word_count.textContent = W.getWordsNum(post.content);
+    watcher.listen("renderContent", (msg) => {
+        let content = msg.content,
+            value = content.value;
+        oriPost.value = value?value:"";
+        W.input_title.value = status.post_title;
+        W.textarea.value =value?value:"";
+        W.MDworker.postMessage(value?value:"空白文档");
+        W.word_count.textContent = W.getWordsNum(value);
 
-        watcher.setPostTitle(post.title);
     })
 
     /*
@@ -96,8 +98,12 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics'], function (requir
         (String content)-> number of charactors 
     */
     W.getWordsNum = (content) => {
+        if(content){
         var ret = content.replace(/\s*/gim, "")
-        return ret.length;
+        return ret.length;}
+        else{
+            return 0
+        }
     }
 
 
@@ -132,7 +138,9 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics'], function (requir
                         oriPost.title = value;
                     }
                 })
+                 oriPost.title = value;
                 console.log("rename", value, postID);
+                e.target.setAttribute("value",value)
             }
 
         })
@@ -173,7 +181,7 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics'], function (requir
             if (!e.isTrusted) return false;
             var content = e.target.value;
 
-            if (content == oriPost.content && status.saved != true) {
+            if (content == oriPost.value && status.saved != true) {
                 watcher.saved()
             } else if (status.saved == true) {
                 watcher.unsaved()

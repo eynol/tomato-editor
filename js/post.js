@@ -4,7 +4,9 @@ define(['require', 'exports', 'module', 'watcher', "template", "dynamics", 'Wave
 
 
     var P = exports,
-        status = watcher.status;
+        status = watcher.status,
+        domList = [],
+        indexMap = {};
 
 
     P.new_post = watcher.$$("js-new-post");
@@ -36,6 +38,13 @@ define(['require', 'exports', 'module', 'watcher', "template", "dynamics", 'Wave
         var items;
         P.posts.innerHTML = "";
         P.posts.insertAdjacentHTML('afterBegin', template("tp-posts", msg));
+        
+        domList = msg.posts.list||[];
+        indexMap = {};
+        for (let i in domList) {
+            indexMap[domList[i].id] = (+domList[i].index);
+        }
+
 
         items = P.posts.children;
         // Animate each line individually
@@ -64,7 +73,7 @@ define(['require', 'exports', 'module', 'watcher', "template", "dynamics", 'Wave
         }
 
 
-        watcher.trigger("postsReady");
+
         watcher.activePost(msg.posts.active);
         watcher.trigger("clickPost", {
             id: msg.posts.active
@@ -91,7 +100,16 @@ define(['require', 'exports', 'module', 'watcher', "template", "dynamics", 'Wave
                 li,
                 li_list,
                 html,
-                newNode;
+                newNode,
+                newPost = {
+                    id: "p" + Date.now(),
+                    fid: status.id_folder,
+                    title: "新建文档",
+                    brief: "ds",
+                    index:0,
+                    created: Date.now(),
+                    modified: Date.now()
+                };
 
 
             dynamics.animate(e.target, {
@@ -115,12 +133,15 @@ define(['require', 'exports', 'module', 'watcher', "template", "dynamics", 'Wave
                 li_list[i].classList.remove("active");
             }
 
-            html = template("tp-post", {
-                title: "无标题文档",
-                id: "a" + Date.now(),
-                brief: "",
-                date: new Date().toLocaleDateString()
-            });
+
+
+            html = template("tp-post", newPost);
+
+         
+            domList.unshift(newPost);
+            for(let i in domList){
+                indexMap[domList[i].id] = (+i);
+            }
 
             posts.insertAdjacentHTML("afterBegin", html);
             newNode = posts.children[0];
@@ -138,9 +159,13 @@ define(['require', 'exports', 'module', 'watcher', "template", "dynamics", 'Wave
                 duration: 1000,
             });
 
-            setTimeout(() => {
-                newNode.classList.add("active");
-            }, 200)
+            watcher.send({
+                intent:["newPost"],
+                params:newPost
+            })
+       
+            newNode.classList.add("active");
+           
         })
 
 
@@ -183,10 +208,14 @@ define(['require', 'exports', 'module', 'watcher', "template", "dynamics", 'Wave
             if (li) li.classList.remove("active");
             el.classList.add("active");
 
-
-
-            watcher.trigger('clickPost', {
-                id: el.dataset["id"]
+            id = el.dataset["id"];
+            watcher.activePost(id);
+            watcher.setPostTitle(el.getAttribute("title"));
+            watcher.send({
+                intent: ["getContent"],
+                params: {
+                    pid: id
+                }
             })
         })
 
@@ -244,7 +273,9 @@ define(['require', 'exports', 'module', 'watcher', "template", "dynamics", 'Wave
             let el = e.target,
                 getNewNode = () => {
                     return P.temp.parentElement.removeChild(P.temp);
-                };
+                },  
+                oldIndex = indexMap[P.temp.dataset["id"]],
+                newIndex;;
 
 
             switch (watcher.tag(el)) {
@@ -252,16 +283,19 @@ define(['require', 'exports', 'module', 'watcher', "template", "dynamics", 'Wave
                 case "p":
                     {
 
+                         newIndex = indexMap[el.parentElement.dataset['id']];
                         el.parentElement.insertAdjacentElement('beforeBegin', getNewNode());
                         break;
                     }
                 case "li":
-                    {
+                    {   
+                         newIndex = indexMap[el.dataset['id']];
                         el.insertAdjacentElement('beforeBegin', getNewNode());
                         break;
                     }
                 case "ul":
                     {
+                        newIndex = P.posts.children.length-1; 
                         el.insertAdjacentElement('beforeEnd', getNewNode());
                         break;
                     }
@@ -273,8 +307,33 @@ define(['require', 'exports', 'module', 'watcher', "template", "dynamics", 'Wave
             }
 
             P.temp = null;
-
+             P.updateIndex(oldIndex, newIndex);
         })
 
+    }
+     P.updateIndex = (oldIndex, newIndex) => {
+        console.log(oldIndex, newIndex)
+        if (oldIndex == newIndex) return;
+        let diff = {},
+            i,
+            old = domList.splice(oldIndex, 1)[0];
+        domList.splice(newIndex, 0, old);
+
+        if (oldIndex < newIndex) {
+            for (i = oldIndex; i <= newIndex; i++) {
+                indexMap[domList[i].id] = (+i);
+                diff[domList[i].id] = (+i);
+            }
+        } else {
+            for (i = newIndex; i <= oldIndex; i++) {
+                indexMap[domList[i].id] = (+i);
+                diff[domList[i].id] = (+i);
+            }
+        }
+        console.table(diff)
+        watcher.send({
+            intent: ["updatePostIndex"],
+            params: diff
+        });
     }
 });

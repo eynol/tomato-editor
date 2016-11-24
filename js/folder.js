@@ -89,7 +89,7 @@ define(['require', 'exports', 'module', 'watcher', 'Waves', 'template', "dynamic
         for (let i in domList) {
             indexMap[domList[i].id] = domList[i].index;
         }
-        console.log(indexMap,domList);
+        
         items = F.folders.children;
 
 
@@ -117,9 +117,6 @@ define(['require', 'exports', 'module', 'watcher', 'Waves', 'template', "dynamic
 
 
         watcher.activeFolder(msg.folders.active);
-        setTimeout(() => {
-            watcher.trigger("foldersReady")
-        })
     })
 
 
@@ -208,8 +205,12 @@ define(['require', 'exports', 'module', 'watcher', 'Waves', 'template', "dynamic
                 });
                 let id = el.dataset["id"];
                 watcher.activeFolder(id)
-                watcher.trigger("clickFolder", {
-                    id: id
+                watcher.send({
+                    intent: ["getPosts"],
+                    params: {
+                        fid:status.id_folder,
+                        pid: id
+                    }
                 });
             }
 
@@ -346,7 +347,7 @@ define(['require', 'exports', 'module', 'watcher', 'Waves', 'template', "dynamic
                     }
                 case "ul":
                     {
-                        newIndex = F.folders.children.length - 2;//it will insert before the node ,so it minus 2
+                        newIndex = F.folders.children.length - 2; //it will insert before the node ,so it minus 2
                         F.folders.querySelector("#js-new-folder").insertAdjacentElement('beforebegin', getNewNode());
                         break;
                     }
@@ -363,7 +364,7 @@ define(['require', 'exports', 'module', 'watcher', 'Waves', 'template', "dynamic
     }
 
     F.updateIndex = (oldIndex, newIndex) => {
-        console.log(oldIndex,newIndex)
+        console.log(oldIndex, newIndex)
         if (oldIndex == newIndex) return;
         let diff = {},
             i,
@@ -382,6 +383,9 @@ define(['require', 'exports', 'module', 'watcher', 'Waves', 'template', "dynamic
             }
         }
         console.log(diff)
-        watcher.send({intent:["updateFolderIndex"], params:diff});
+        watcher.send({
+            intent: ["updateFolderIndex"],
+            params: diff
+        });
     }
 });
