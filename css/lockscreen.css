@@ -12,12 +12,15 @@ body div.locker-main {
     text-align: center;
     font-size: 36vw;
     color: #333;
-    text-shadow: 3px 5px 5px rgba(0, 0, 0, 0.2333), 0 8px 17px rgba(0, 0, 0, 0.333);
+    /*text-shadow: 3px 5px 5px rgba(0, 0, 0, 0.2333), 0 8px 17px rgba(0, 0, 0, 0.333);*/
 }
-.ls-time p{
+
+.ls-time p {
     margin: 0;
 }
-.ls-btn,.ls-password {
+
+.ls-btn,
+.ls-password {
     position: fixed;
     width: 100%;
     bottom: 40px;
@@ -31,6 +34,8 @@ body div.locker-main {
     text-decoration: none;
     text-transform: uppercase;
     padding: 20px 30px;
+    transform: translateX(60px);
+    opacity: 0;
     /*border-radius: 5px;*/
     /*border: 1px solid rgba(0,0,0,0.2333);*/
     /*box-shadow: 0px 2px 3px rgba(0,0,0,0.1333), 0 5px 12px rgba(0,0,0,0.233);*/
@@ -84,25 +89,27 @@ body div.locker-main {
     -webkit-transform: scale(1);
     transform: scale(1);
 }
-.ls-password{
-     opacity: 0;
-     bottom: -125px;
+
+.ls-password {
+    opacity: 0;
+    bottom: -125px;
 }
-.ls-password input{
+
+.ls-password input {
     font-family: inherit;
-     line-height: 58px;
+    line-height: 58px;
     outline: 0;
     border: none;
     border-bottom: 2px solid rgba(0, 0, 0, 0.2333);
     text-align: center;
     font-size: 25px;
-  
-   
 }
+
 .ls-password p {
     margin: 5px 0 0 0;
-    color:#707070;
+    color: #707070;
 }
-.ls-password p.error{
-    color:#fa5083;
+
+.ls-password p.error {
+    color: #fa5083;
 }

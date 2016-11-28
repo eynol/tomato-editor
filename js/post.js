@@ -1,4 +1,4 @@
-define(['require', 'exports', 'module', 'watcher', "template", "dynamics", 'Waves'], function (require, exports, module, watcher, template, dynamics, Waves) {
+define(['require', 'exports', 'module', 'watcher', "template", "dynamics", 'Waves', 'moment'], function (require, exports, module, watcher, template, dynamics, Waves, moment) {
     'use strict';
 
 
@@ -11,35 +11,68 @@ define(['require', 'exports', 'module', 'watcher', "template", "dynamics", 'Wave
 
     P.new_post = watcher.$$("js-new-post");
     P.posts = watcher.$$("js-posts");
-
+    P.post_title = watcher.$$("js-title");
+    P.date_label = watcher.$$("js-date-label");
 
     P.init = function () {
         dom();
 
     }
 
+    P.getDomPost = (id) => {
+        return status.post = domList[indexMap[id]];
+    }
+    P.updateDomPost = (params) => {
+        var attrList = ["modified", 'brief', 'title', 'value'],
+            the_post = status.post,
+            id = the_post.id;
+        for (let i of attrList) {
+            if (params[i] != undefined) {
+                the_post[i] = params[i];
+            }
+        }
 
-    watcher.listen("clickFolder", (folder) => {
+        let list_item = P.posts.children[indexMap[id]],
+            title = list_item.children[0],
+            brief = list_item.children[1],
+            date = list_item.children[2];
 
-        fetch("./api/getPosts.json?" +
-                watcher.toQuery({
-                    id: folder.id,
-                    t: Date.now()
-                }))
-            .then(watcher.respToJSON).then((json) => {
-                watcher.trigger("renderPosts", json)
+            title.setAttribute("title",the_post.title);
+            brief.setAttribute("title",the_post.brief);
+            date.setAttribute("title",the_post.modified);
 
-            })
-            .catch(watcher.fetchError);
+
+
+    }
+
+
+    watcher.listen("saveContentSuccess", (msg) => {
 
     })
 
+    watcher.listen("clickPost", (post) => {
+
+        //send post to status
+        P.getDomPost(post.pid);
+
+        //other things
+        watcher.activePost(post.pid);
+
+        watcher.send({
+            intent: ["getContent"],
+            params: {
+                pid: post.pid
+            }
+        })
+    })
+
     watcher.listen("renderPosts", (msg) => {
-        var items;
+        var items,
+            activeid = msg.posts.active;
         P.posts.innerHTML = "";
         P.posts.insertAdjacentHTML('afterBegin', template("tp-posts", msg));
-        
-        domList = msg.posts.list||[];
+
+        domList = msg.posts.list || [];
         indexMap = {};
         for (let i in domList) {
             indexMap[domList[i].id] = (+domList[i].index);
@@ -74,9 +107,10 @@ define(['require', 'exports', 'module', 'watcher', "template", "dynamics", 'Wave
 
 
 
-        watcher.activePost(msg.posts.active);
+        //  watcher.setPostTitle(el.children[0].getAttribute("title"));
+
         watcher.trigger("clickPost", {
-            id: msg.posts.active
+            pid: activeid
         });
 
     })
@@ -87,7 +121,7 @@ define(['require', 'exports', 'module', 'watcher', "template", "dynamics", 'Wave
 
     //this module's final part's is function dom 
     function dom() {
-
+    
 
         //  new item
         P.new_post.addEventListener('click', (e) => {
@@ -106,7 +140,7 @@ define(['require', 'exports', 'module', 'watcher', "template", "dynamics", 'Wave
                     fid: status.id_folder,
                     title: "新建文档",
                     brief: "ds",
-                    index:0,
+                    index: 0,
                     created: Date.now(),
                     modified: Date.now()
                 };
@@ -137,9 +171,9 @@ define(['require', 'exports', 'module', 'watcher', "template", "dynamics", 'Wave
 
             html = template("tp-post", newPost);
 
-         
+
             domList.unshift(newPost);
-            for(let i in domList){
+            for (let i in domList) {
                 indexMap[domList[i].id] = (+i);
             }
 
@@ -160,12 +194,12 @@ define(['require', 'exports', 'module', 'watcher', "template", "dynamics", 'Wave
             });
 
             watcher.send({
-                intent:["newPost"],
-                params:newPost
+                intent: ["newPost"],
+                params: newPost
             })
-       
+
             newNode.classList.add("active");
-           
+
         })
 
 
@@ -179,7 +213,7 @@ define(['require', 'exports', 'module', 'watcher', "template", "dynamics", 'Wave
         //     e.preventDefault();
 
         // });
-        P.posts.addEventListener("mousedown", (e) => {
+        P.posts.addEventListener("click", (e) => {
             if (!e.isTrusted) return false;
             if (status.saved == false) {
                 watcher.trigger("unsaved");
@@ -209,13 +243,11 @@ define(['require', 'exports', 'module', 'watcher', "template", "dynamics", 'Wave
             el.classList.add("active");
 
             id = el.dataset["id"];
-            watcher.activePost(id);
-            watcher.setPostTitle(el.getAttribute("title"));
-            watcher.send({
-                intent: ["getContent"],
-                params: {
-                    pid: id
-                }
+
+            watcher.setPostTitle(el.children[0].getAttribute("title"));
+
+            watcher.trigger("clickPost", {
+                pid: id
             })
         })
 
@@ -273,7 +305,7 @@ define(['require', 'exports', 'module', 'watcher', "template", "dynamics", 'Wave
             let el = e.target,
                 getNewNode = () => {
                     return P.temp.parentElement.removeChild(P.temp);
-                },  
+                },
                 oldIndex = indexMap[P.temp.dataset["id"]],
                 newIndex;;
 
@@ -283,19 +315,19 @@ define(['require', 'exports', 'module', 'watcher', "template", "dynamics", 'Wave
                 case "p":
                     {
 
-                         newIndex = indexMap[el.parentElement.dataset['id']];
+                        newIndex = indexMap[el.parentElement.dataset['id']];
                         el.parentElement.insertAdjacentElement('beforeBegin', getNewNode());
                         break;
                     }
                 case "li":
-                    {   
-                         newIndex = indexMap[el.dataset['id']];
+                    {
+                        newIndex = indexMap[el.dataset['id']];
                         el.insertAdjacentElement('beforeBegin', getNewNode());
                         break;
                     }
                 case "ul":
                     {
-                        newIndex = P.posts.children.length-1; 
+                        newIndex = P.posts.children.length - 1;
                         el.insertAdjacentElement('beforeEnd', getNewNode());
                         break;
                     }
@@ -307,11 +339,14 @@ define(['require', 'exports', 'module', 'watcher', "template", "dynamics", 'Wave
             }
 
             P.temp = null;
-             P.updateIndex(oldIndex, newIndex);
-        })
+            P.updateIndex(oldIndex, newIndex);
+        });
+
+ 
+
 
     }
-     P.updateIndex = (oldIndex, newIndex) => {
+    P.updateIndex = (oldIndex, newIndex) => {
         console.log(oldIndex, newIndex)
         if (oldIndex == newIndex) return;
         let diff = {},

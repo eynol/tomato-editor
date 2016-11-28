@@ -209,7 +209,7 @@ define(['require', 'exports', 'module', 'watcher', 'Waves', 'template', "dynamic
                     intent: ["getPosts"],
                     params: {
                         fid:status.id_folder,
-                        pid: id
+                        pid: null
                     }
                 });
             }

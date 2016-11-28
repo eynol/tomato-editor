@@ -122,7 +122,7 @@
 				<li draggable="true" data-id="{{post.id}}" class="{{if posts.active == post.id}}active{{/if}} waves-effect waves-light"  >
 				<p title="{{post.title}}" class="post-title"></p>
 				<p title="{{post.brief}}" class="post-brief"></p>
-				<p title="{{post.date}}" class="post-date"></p>
+				<p title="{{post.modified}}" class="post-date"></p>
 				</li>
 				{{/each}}
 				</script>
@@ -148,7 +148,9 @@
 			</div>
 			<div class="app-body-right">
 				<div class="title">
-					<input type="text" id="js-title" placeholder="请输入文件名">
+					<div id="js-post-name" class="">
+							<p class="post-title-input">post name</p>
+					</div>
 					<p class="color-gray">
 						<label id="js-date-label">2016年10月12日</label>
 						<label id="js-word-count">2300字</label>

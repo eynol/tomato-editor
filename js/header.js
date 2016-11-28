@@ -3,6 +3,7 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics'], function (requir
     var H = module.exports,
         lock_btn = watcher.$$("js-o-lock"),
         info_hub = watcher.$$("js-info-hub"),
+        setting = watcher.$$("js-o-setting"),
         status = watcher.status,
         current_status={};
 

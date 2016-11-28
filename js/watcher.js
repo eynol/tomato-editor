@@ -95,7 +95,9 @@ define(['require', 'exports', 'module', 'LS'], function (require, exports, modul
     //  here we go
     //
     var W = exports = module.exports,
-        status = W.status = {};
+        status = W.status = {
+            post:{}
+        };
 
 
     W.activeFolder = (fid) => {
@@ -118,8 +120,7 @@ define(['require', 'exports', 'module', 'LS'], function (require, exports, modul
         status.saved = true;
         W.trigger("statusChange")
     }
-    W.savePost = (post) => {
-
+    W.saveContent = (post) => {
         W.saved();
     }
     W.activeMode = (mode) => {

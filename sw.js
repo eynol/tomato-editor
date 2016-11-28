@@ -210,13 +210,18 @@
                          return new Promise((_resolve, _reject) => {
                              //let's  get the post who's index equals 0
                              getDBobject(post_name, "readonly").then((dbPost4index) => {
-                                 let req = dbPost4index.index("index").openKeyCursor(IDBKeyRange.only(0));
+                                 let req = dbPost4index.index("index").openCursor(IDBKeyRange.only(0));
                                  req.onsuccess = (e) => {
                                      let _cursor = e.target.result;
                                      if (_cursor) {
                                          //we get the actived pid
-                                         _ret.posts.active = _cursor.primaryKey;
-                                         _resolve(_ret);
+                                         if(_cursor.value.fid == params.fid){
+                                             console.log(_ret)
+                                            _ret.posts.active = _cursor.value.id;
+                                            _resolve(_ret);
+                                         }else{
+                                             _cursor.continue();
+                                         }
                                      } else {
                                          _reject(new Error("no post index equals 0 ,the posts' index is messed"))
                                      }
@@ -254,20 +259,22 @@
      },
      _newPost(params, ret) {
          //once new a post all of posts' index will plus 1,then we add the new post
-         return getDBobject(post_name).then((dbPost)=>{
-             return new Promise((resolve,reject)=>{
+         return getDBobject(post_name).then((dbPost) => {
+             return new Promise((resolve, reject) => {
                  let req = dbPost.index("fid").openCursor(IDBKeyRange.only(params.fid)),
-                        func_error = (e)=>{reject(e)};
-                 req.onsuccess = (e)=>{
+                     func_error = (e) => {
+                         reject(e)
+                     };
+                 req.onsuccess = (e) => {
                      let cursor = e.target.result;
-                     if(cursor){
+                     if (cursor) {
                          let post = cursor.value;
-                         post.index +=1;
-                         dbPost.put(post).onsuccess = (e)=>{
+                         post.index += 1;
+                         dbPost.put(post).onsuccess = (e) => {
                              cursor.continue();
-                         } 
-                     }else{
-                         dbPost.add(params).onsuccess = (e)=>{
+                         }
+                     } else {
+                         dbPost.add(params).onsuccess = (e) => {
                              resolve("ok")
                          }
                      }
@@ -276,8 +283,8 @@
              })
          })
      },
-     _updateIndex(params,ret){
-          return getDBobject(post_name).then((dbPost) => {
+     _updateIndex(params, ret) {
+         return getDBobject(post_name).then((dbPost) => {
              return new Promise((resolve, reject) => {
                  let cursor;
                  dbPost.openCursor().onsuccess = (e) => {
@@ -307,6 +314,27 @@
                  }
              })
          })
+     },
+     _whenUpdContent(params, dbPost) {
+         return new Promise((resolve, reject) => {
+             if(!params.pid)reject("pid is undefined");
+             dbPost.get(params.pid).onsuccess = (e) => {
+                
+                 let post = e.target.result;
+                 post.brief = params.brief
+                 post.modified = params.modified;
+
+
+                 dbPost.put(post).onsuccess = (e) => {
+                     resolve("ok");
+                 }
+             }
+             dbPost.onerror = (e) => {
+                 reject(e);
+             }
+
+         })
+
      }
  }
 
@@ -467,21 +495,46 @@
          })
      },
      _updateContent(params, ret) {
-         return getDBobject(content_name).then((dbContent) => {
+         return getDB().then((db) => {
+             let transaction = db.transaction([content_name, post_name], "readwrite");
              return new Promise((resolve, reject) => {
+                 console.log(params.pid)
+                 let dbContent = transaction.objectStore(content_name),
+                     dbPost = transaction.objectStore(post_name),
+                     req = dbContent.index("pid").openCursor(IDBKeyRange.only(params.pid));
 
-                 let req = dbContent.get(params.id);
                  req.onsuccess = (e) => {
-                     let content = e.target.result;
-                     content.value = params.value
-                     dbContent.put(content).onsuccess = (e) => {
-                         ret.intent.push("notify");
-                         ret.info = "更新内容成功";
-                         resolve(ret)
+                     let cursor = e.target.result,
+                         okCb = (e) => {
+                             //well, if we update content successfully,we have to update post info;
+                             //we define the update post function to update post infomation
+                             _Post._whenUpdContent(params, dbPost).then(() => {
+                                 ret.intent.push("notify");
+                                 ret.intent.push("saveContentSuccess");
+                                 ret.info = "更新内容成功";
+                                 ret.params = params
+                                 resolve(ret)
+                             })
+                         };
+                     if (cursor) {
+                         //if the content  exist
+                         let content = cursor.value;
+                         content.value = params.value
+                         dbContent.put(content).onsuccess = okCb;
+                     } else {
+                         // post did not have  content,we have to create it
+                         let newContent = {
+                             id: "c" + Date.now(),
+                             pid: params.pid,
+                             value: params.value
+                         }
+                         dbContent.add(newContent).onsuccess = okCb;
                      }
+
                  }
                  req.onerror = (e) => {
-                     reject(e)
+                     console.log(e)
+                     reject("req ")
                  }
              })
          })
@@ -522,8 +575,11 @@
      newPost(params, ret) {
          return _Post._newPost(params, ret)
      },
-     updatePostIndex(params,ret){
-         return _Post._updateIndex(params,ret).then(returnMSG)
+     updatePostIndex(params, ret) {
+         return _Post._updateIndex(params, ret).then(returnMSG)
+     },
+     saveContent(params, ret) {
+         return _Content._updateContent(params, ret).then(returnMSG)
      }
  }
 
@@ -541,13 +597,14 @@
                  intent: []
              };
 
-         console.table(msg)
          for (let i = 0; i < msg.intent.length; i++) {
              strategy[msg.intent[i]](msg.params, ret)
                  .catch((e) => {
+                     console.dir(e)
                      postMessage(JSON.stringify({
                          intent: ["error"],
-                         error: e
+                         message: e.message,
+                         stack: e.stack
                      }))
                  });
          }

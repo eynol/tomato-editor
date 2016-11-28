@@ -4,12 +4,11 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics'], function (requir
 
     var W = exports,
         status = watcher.status,
-        oriPost={};
+        oriPost = {};
 
 
 
-    W.input_title = watcher.$$("js-title");
-    W.date_label = watcher.$$("js-date-label");
+   
     W.word_count = watcher.$$("js-word-count");
 
     W.save = watcher.$$("js-o-save");
@@ -20,7 +19,7 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics'], function (requir
     W.preview_btn = watcher.$$("js-o-preview");
     W.air_mode = watcher.$$("js-o-air-mode");
 
-    W.setting = watcher.$$("js-o-setting");
+  
 
     W.textarea = watcher.$$("js-edit");
     W.preview = watcher.$$("js-preview");
@@ -34,29 +33,11 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics'], function (requir
 
 
 
-    // watcher.listen("clickPost", (post) => {
-    //     watcher.activePost(post.id);
-    //     W.getPost(post.id);
-    // })
+    watcher.listen("saveContentSuccess", (msg) => {
+        oriPost.value = msg.params.value;
+        watcher.saved()
+    })
 
-    // /*
-    //          get post fuction
-    // */
-    // W.getPost = (pid) => {
-    //     if ((!!pid) == false) {
-    //         watcher.trigger("noContent");
-    //         return;
-    //     }
-    //     fetch("./api/getPost.json?" + watcher.toQuery({
-    //             id: pid,
-    //             t: Date.now()
-    //         }))
-    //         .then(watcher.respToJSON)
-    //         .then((json) => {
-    //             oriPost = json;
-    //             watcher.trigger('renderPost', json);
-    //         }).catch(watcher.fetchError)
-    // }
 
     /*
             subscribe renderPost 
@@ -64,26 +45,32 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics'], function (requir
     watcher.listen("renderContent", (msg) => {
         let content = msg.content,
             value = content.value;
-        oriPost.value = value?value:"";
+        oriPost.value = value ? value : "";
         W.input_title.value = status.post_title;
-        W.textarea.value =value?value:"";
-        W.MDworker.postMessage(value?value:"空白文档");
+        W.textarea.value = value ? value : "";
+        W.MDworker.postMessage(value ? value : "空白文档");
         W.word_count.textContent = W.getWordsNum(value);
 
     })
 
     /*
-             renderPost
+             saveContent
     */
-    watcher.listen("savePost", () => {
+    watcher.listen("saveContent", () => {
+
         var content = W.textarea.value,
             post = {
-                id: status.id_post,
+                pid: status.id_post,
                 name: W.input_title.value,
                 brief: content.substr(0, 50),
-                date: Date.now()
+                modified: Date.now(),
+                value: content
             };
-        console.log(post);
+
+        watcher.send({
+            intent: ["saveContent"],
+            params: post
+        })
     })
 
 
@@ -98,10 +85,10 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics'], function (requir
         (String content)-> number of charactors 
     */
     W.getWordsNum = (content) => {
-        if(content){
-        var ret = content.replace(/\s*/gim, "")
-        return ret.length;}
-        else{
+        if (content) {
+            var ret = content.replace(/\s*/gim, "")
+            return ret.length;
+        } else {
             return 0
         }
     }
@@ -120,31 +107,11 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics'], function (requir
 
     }
 
+
+
+
     function dom() {
-        /*
-        title focus & blur
-        */
-
-        W.input_title.addEventListener('change', (e) => {
-
-            var value = e.target.value,
-                postID = status.id_post;
-
-            if (value != oriPost.title) {
-                watcher.trigger("rename", {
-                    name: value,
-                    id: postID,
-                    then: () => {
-                        oriPost.title = value;
-                    }
-                })
-                 oriPost.title = value;
-                console.log("rename", value, postID);
-                e.target.setAttribute("value",value)
-            }
-
-        })
-
+       
 
 
         /*
@@ -196,23 +163,27 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics'], function (requir
         });
 
         W.textarea.addEventListener("keydown", (e) => {
-            if (!e.isTrusted) return false;
-            if (e.keyCode == 83 && e.ctrlKey == true) {
-                //ctrl+s key
-                e.preventDefault();
-                watcher.trigger("savePost");
-            }
-            // else if(e.keyCode == 9){
-            //     tab key
-            //      e.preventDefault();
-            // };
+                if (!e.isTrusted) return false;
+                if (e.keyCode == 83 && e.ctrlKey == true) {
+                    //ctrl+s key
+                    e.preventDefault();
+                    watcher.trigger("saveContent");
+                }
+                // else if(e.keyCode == 9){
+                //     tab key
+                //      e.preventDefault();
+                // };
 
-        })
-
-
-        /*
-                open & close preview aside 
-        */
+            })
+            /**
+             *      save   btn
+             */
+        W.save.addEventListener("click", (e) => {
+                watcher.trigger("saveContent");
+            })
+            /*
+                    open & close preview aside 
+            */
 
         W.preview_btn.addEventListener("click", () => {
             var pr = W.preview,

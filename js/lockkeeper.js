@@ -16,11 +16,11 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics', 'Waves'], functio
 
     function btn_hide() {
         dynamics.animate(btn, {
-            translateY: -60,
+            translateX: 60,
             opacity: 0,
             scaleY: .01
         }, {
-            duration: 300,
+            duration: 500,
             type: dynamics.easeInOut,
             friction: 100
 
@@ -29,13 +29,13 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics', 'Waves'], functio
 
     function btn_show() {
         dynamics.animate(btn, {
-            translateY: 0,
+            translateX: 0,
             opacity: 1,
             scaleY: 1
         }, {
-            duration: 300,
-            type: dynamics.easeInOut,
-            friction: 100
+            duration: 500,
+            type: dynamics.easeOut,
+            friction: 200
         });
     }
 
@@ -63,10 +63,10 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics', 'Waves'], functio
     function lockScreen() {
         var thescreen = document.getElementsByClassName("locker-main")[0];
         dynamics.animate(thescreen, {
-            translateX: 0
+            translateY: 0
         }, {
             type: dynamics.easeInOut,
-            duration: 500,
+            duration: 1500,
             friction: 150
         })
     }
@@ -76,10 +76,10 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics', 'Waves'], functio
         var thescreen = document.getElementsByClassName("locker-main")[0];
 
         dynamics.animate(thescreen, {
-                translateX: "100vw"
+                translateY: "100vw"
             }, {
                 type: dynamics.bezier,
-                duration: 605,
+                duration: 1500,
                 points: [{
                     "x": 0,
                     "y": 0,
@@ -142,6 +142,9 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics', 'Waves'], functio
             }
 
         });
+
+        btn_show();
+
 
         password.addEventListener("keydown", checkpassword);
         password.addEventListener("blur", () => {

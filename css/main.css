@@ -325,6 +325,8 @@ p.post-date {
     margin-bottom: -1px;
 }
 
+
+
 #js-word-count:after{
     content:" 字";
 }
@@ -376,7 +378,10 @@ textarea.edit-area,
     word-wrap: break-word;
     word-break: break-word;
 }
-
+.preview img{
+    max-width:100%;
+    margin: 0 auto; 
+}
 
 /* ******************   *\
     #  
