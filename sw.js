@@ -20,7 +20,7 @@
      id: "p" + Date.now(),
      fid: initFolders.id,
      title: "How to Use",
-     brief: "ds",
+     brief: "",
      index: 0,
      created: Date.now(),
      modified: Date.now()
@@ -223,7 +223,9 @@
                                              _cursor.continue();
                                          }
                                      } else {
-                                         _reject(new Error("no post index equals 0 ,the posts' index is messed"))
+                                        //  _reject(new Error("no post index equals 0 ,the posts' index is messed"))
+
+                                        _resolve(_ret);
                                      }
                                  }
                                  req.onerror = (e) => {
@@ -335,6 +337,23 @@
 
          })
 
+     },
+     _updateTitle(params,ret){
+         return new Promise((resolve,reject)=>{
+             getDBobject(post_name).then((dbPost)=>{
+                 dbPost.get(params.pid).onsuccess = (e)=>{
+                     let post = e.target.result;
+                     post.title = params.title ||"";
+                     dbPost.put(post).onsuccess = (e)=>{
+                         ret.intent.push("notify");
+                         ret.info = "update title success!";
+                         resolve(ret)
+                     }
+                 }
+             }).catch(()=>{
+                 reject("update failed");
+             })
+         })
      }
  }
 
@@ -580,6 +599,9 @@
      },
      saveContent(params, ret) {
          return _Content._updateContent(params, ret).then(returnMSG)
+     },
+     updatePostTitle(params,ret){
+        return _Post._updateTitle(params,ret).then(returnMSG)
      }
  }
 

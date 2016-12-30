@@ -4,7 +4,7 @@ importScripts('./bower_components/markdown/lib/markdown.js')
 
 
 onmessage = function(e){
-
-    postMessage(markdown.toHTML(e.data));
+    let msg = e.data ||"(空白内容/EMPTY)";
+    postMessage(markdown.toHTML(msg));
 
 }

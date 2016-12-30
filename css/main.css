@@ -282,22 +282,34 @@ p.post-date {
     flex-grow: 1;
     display: flex;
     flex-direction: row;
-    padding: 0 10px 10px;
+    margin: 0 30px 30px;
 }
 
-.title {
+.workspace-head {
     padding: 0 30px;
 }
 
-.title p {
+.workspace-head p {
     margin: 5px 0 0 0;
 }
-
-.title label {
-    margin-left: 10px;
+.active-post-title p{
+    margin: 0;
+    height: 70px;
+    color: rgba(0, 0, 0, .87);
+    border: none;
+    border-bottom: 1px solid rgba(0, 0, 0, .12);
+    outline: 0;
+    width: 100%;
+    font-family: inherit;
+    font-size: 30px;
+    line-height: 30px;
+    padding: 28px 5px 5px;
+    box-sizing: border-box;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
 }
-
-.title input[type=text] {
+.active-post-title input[type=text] {
     display: block;
     height: 70px;
     background-color: transparent;
@@ -318,12 +330,19 @@ p.post-date {
     background-image: none;
 }
 
-.title input[type=text]:focus {
+.active-post-title input[type=text]:focus {
     border-color: #2196F3;
     height: 71px;
     border-width: 2px;
     margin-bottom: -1px;
 }
+
+
+
+.workspace-head label {
+    margin-left: 10px;
+}
+
 
 
 
@@ -350,7 +369,7 @@ p.post-date {
     color:var(--color-tomato);
 }   
 
-.title:hover .operations {
+.workspace-head:hover .operations {
     opacity: 1;
 }
 
@@ -359,20 +378,26 @@ textarea.edit-area,
     position: relative;
     box-sizing: border-box;
     resize: none;
-    flex: 50% 1;
+    /*flex: 50% 1;*/
+    width: 50%;
     border: 0;
     outline: 0;
-    padding: 20px 30px;
+    box-sizing: border-box;
+    margin: 20px 0;
     color: #2f2f2f;
     font-size: 16px;
     font-weight: normal;
     line-height: 1.7;
-    transition: .3s;
+    transition: .5s;
     font-family: -apple-system, "Helvetica Neue", Arial, "PingFang SC", "lucida grande", "lucida sans unicode", lucida, helvetica, "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
 }
 
-
+textarea.edit-area{
+    padding-right:15px;
+    background-color: transparent;
+}
 .preview {
+    padding-left:15px;
     padding-top:0;
     overflow: auto;
     word-wrap: break-word;
@@ -384,5 +409,12 @@ textarea.edit-area,
 }
 
 /* ******************   *\
-    #  
+    #  response 
+    not nessacery
 \* ******************  */
+
+@media screen and (max-width:500px){
+    .info-hub{
+        display: none;
+    }
+}

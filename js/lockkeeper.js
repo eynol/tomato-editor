@@ -35,7 +35,7 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics', 'Waves'], functio
         }, {
             duration: 500,
             type: dynamics.easeOut,
-            friction: 200
+            friction: 1
         });
     }
 
@@ -65,9 +65,9 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics', 'Waves'], functio
         dynamics.animate(thescreen, {
             translateY: 0
         }, {
-            type: dynamics.easeInOut,
+            type: dynamics.spring,
             duration: 1500,
-            friction: 150
+            friction: 400
         })
     }
 
@@ -76,7 +76,7 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics', 'Waves'], functio
         var thescreen = document.getElementsByClassName("locker-main")[0];
 
         dynamics.animate(thescreen, {
-                translateY: "100vw"
+                translateY: "100vh"
             }, {
                 type: dynamics.bezier,
                 duration: 1500,
@@ -151,7 +151,7 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics', 'Waves'], functio
             input_hide();
             btn_show();
 
-        })
+        });
     }
 
     watcher.listen("lockScreen", lockScreen);

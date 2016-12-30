@@ -22,6 +22,7 @@
     "normalize-css": "^5.0.0",
     "Waves": "waves#^0.7.5",
     "art-template": "^3.0.1",
-    "moment": "^2.17.0"
+    "moment": "^2.17.0",
+	"dynamics.js":"^1.1.1"
   }
 }

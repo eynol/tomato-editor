@@ -4,7 +4,7 @@
 <head>
 	<title>text editor</title>
 	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 	<link rel="stylesheet" type="text/css" href="./bower_components/normalize-css/normalize.css">
 	<!-- mui theme -->
@@ -122,7 +122,7 @@
 				<li draggable="true" data-id="{{post.id}}" class="{{if posts.active == post.id}}active{{/if}} waves-effect waves-light"  >
 				<p title="{{post.title}}" class="post-title"></p>
 				<p title="{{post.brief}}" class="post-brief"></p>
-				<p title="{{post.modified}}" class="post-date"></p>
+				<p title="{{post.modified | dateFormat}}" class="post-date"></p>
 				</li>
 				{{/each}}
 				</script>
@@ -147,9 +147,9 @@
 				</div>
 			</div>
 			<div class="app-body-right">
-				<div class="title">
-					<div id="js-post-name" class="">
-							<p class="post-title-input">post name</p>
+				<div class="workspace-head">
+					<div id="js-post-name" class="active-post-title">
+							<p>post name</p>
 					</div>
 					<p class="color-gray">
 						<label id="js-date-label">2016年10月12日</label>

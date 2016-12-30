@@ -152,8 +152,8 @@ define(['require', 'exports', 'module', 'LS'], function (require, exports, modul
         W.saved();
         LS.set("saved", true);
     }
-    status.last_edit_date = LS.get("last_edit_date");
 
+    status.last_edit_date = LS.get("last_edit_date");
     status.cursor_index = LS.get("cursor_index");
 
     status.cache_length = LS.get("cache_length");
@@ -248,4 +248,5 @@ define(['require', 'exports', 'module', 'LS'], function (require, exports, modul
     document.addEventListener("msfullscreenchange", fullscreenchange);
 
     ///ie 
+
 });

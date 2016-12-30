@@ -6,12 +6,22 @@ define(['require', 'exports', 'module', 'watcher', "template", "dynamics", 'Wave
     var P = exports,
         status = watcher.status,
         domList = [],
-        indexMap = {};
+        indexMap = {},
+        dateFormat = date => {
+    return moment(Number(date)).format('LLL');
+};
 
 
+moment.locale(navigator.languages[0]);
+
+template.helper('dateFormat',(date)=>{
+    return moment(Number(date)).calendar()
+});
     P.new_post = watcher.$$("js-new-post");
     P.posts = watcher.$$("js-posts");
-    P.post_title = watcher.$$("js-title");
+
+
+    P.post_name = watcher.$$("js-post-name");
     P.date_label = watcher.$$("js-date-label");
 
     P.init = function () {
@@ -37,23 +47,36 @@ define(['require', 'exports', 'module', 'watcher', "template", "dynamics", 'Wave
             brief = list_item.children[1],
             date = list_item.children[2];
 
-            title.setAttribute("title",the_post.title);
-            brief.setAttribute("title",the_post.brief);
-            date.setAttribute("title",the_post.modified);
+        title.setAttribute("title", the_post.title);
+        brief.setAttribute("title", the_post.brief);
+        date.setAttribute("title", dateFormat(the_post.modified));
 
+        //dom
+        P.post_name.children[0].innerText = the_post.title;
+        P.date_label.innerText = dateFormat(the_post.modified);
 
 
     }
 
+    
+    watcher.listen("renderContent", (msg) => {
+
+        P.updateDomPost({
+            value: msg.content.value
+        });
+    })
 
     watcher.listen("saveContentSuccess", (msg) => {
-
+        P.updateDomPost(msg.params);
     })
 
     watcher.listen("clickPost", (post) => {
 
         //send post to status
-        P.getDomPost(post.pid);
+        var cp_post = P.getDomPost(post.pid);
+
+        P.post_name.children[0].innerText = cp_post.title;
+        P.date_label.innerText = dateFormat(cp_post.modified);
 
         //other things
         watcher.activePost(post.pid);
@@ -121,7 +144,53 @@ define(['require', 'exports', 'module', 'watcher', "template", "dynamics", 'Wave
 
     //this module's final part's is function dom 
     function dom() {
-    
+        P.post_name.addEventListener("dblclick", (e) => {
+
+            if (status.renameing) return;
+            let input = document.createElement('input'),
+                oldTitle;
+
+            input.type = "text";
+            input.value = oldTitle =status.post.title;
+            P.post_name.innerHTML = "";
+            input = P.post_name.insertAdjacentElement("afterBegin", input);
+
+
+            input.focus();
+            //put the cursor in the end
+            input.setSelectionRange(oldTitle.length, oldTitle.length);
+
+            status.renameing = true;
+
+
+            //when press enter ,make the input blur
+            input.addEventListener("keypress", function (e) {
+                if (e.keyCode == 13) {
+                    input.blur();
+                }
+            })
+            input.addEventListener("blur", (e) => {
+                let newTitle = e.target.value
+                P.post_name.innerHTML = '<p>' + watcher.escape(newTitle) + '</p>';
+                if (newTitle != oldTitle) {
+                    //it's different, update title
+                    P.updateDomPost({
+                        title:newTitle
+                    });
+                    watcher.send({
+                        intent:['updatePostTitle'],
+                        params:{
+                            pid:status.post.id,
+                            title:newTitle
+                        }
+                    })
+                }
+                status.renameing = false;;
+                input = null;
+            })
+        })
+
+
 
         //  new item
         P.new_post.addEventListener('click', (e) => {
@@ -139,7 +208,7 @@ define(['require', 'exports', 'module', 'watcher', "template", "dynamics", 'Wave
                     id: "p" + Date.now(),
                     fid: status.id_folder,
                     title: "新建文档",
-                    brief: "ds",
+                    brief: "",
                     index: 0,
                     created: Date.now(),
                     modified: Date.now()
@@ -342,7 +411,7 @@ define(['require', 'exports', 'module', 'watcher', "template", "dynamics", 'Wave
             P.updateIndex(oldIndex, newIndex);
         });
 
- 
+
 
 
     }
