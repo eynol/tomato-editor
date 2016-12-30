@@ -205,7 +205,7 @@ define(['require', 'exports', 'module', 'LS'], function (require, exports, modul
      * pretent we have a serviceWorker
      */
 
-    var serviceWorker = new Worker("./../sw.js");
+    var serviceWorker = new Worker("/apps/sw.js");
 
     serviceWorker.onmessage = function (e) {
         if (typeof e.data == "string") {
