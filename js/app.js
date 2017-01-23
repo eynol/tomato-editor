@@ -18,8 +18,16 @@ requirejs.config({
     }
 });
 
+
+window.editor_debug = true;
+function lg(){
+  if(window.editor_debug){
+    console.log.apply(console,arguments)
+  }
+}
+
 require(['lockkeeper','page'],function(lockkeeper,page){
+    lg("start lockkeeper")
     lockkeeper.init();
 
-    
-}); 
+});

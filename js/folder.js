@@ -1,4 +1,4 @@
-define(['require', 'exports', 'module', 'watcher', 'Waves', 'template', "dynamics", 'notify'], function (require, exports, module, watcher, Waves, template, dynamics) {
+define(['require', 'exports', 'module', 'watcher', 'Waves', 'template', "dynamics", 'notify'], function(require, exports, module, watcher, Waves, template, dynamics) {
     'use strict';
     var F = exports,
         status = watcher.status,
@@ -10,12 +10,12 @@ define(['require', 'exports', 'module', 'watcher', 'Waves', 'template', "dynamic
     F.folders = watcher.$$("js-folders-ul");
     F.new_folder = watcher.$$("js-new-folder");
 
+    F.folder_menu = watcher.$$("js-folder-menu")
 
 
-
-    F.init = function () {
-            dom();
-        } // init 
+    F.init = function() {
+        dom();
+    } // init
 
 
 
@@ -89,14 +89,14 @@ define(['require', 'exports', 'module', 'watcher', 'Waves', 'template', "dynamic
         for (let i in domList) {
             indexMap[domList[i].id] = domList[i].index;
         }
-        
+
         items = F.folders.children;
 
 
         // Animate each line individually
         for (var i = 0; i < items.length; i++) {
             var item = items[i]
-                // Define initial properties
+            // Define initial properties
             dynamics.css(item, {
                 opacity: 0,
                 translateY: 38
@@ -119,7 +119,25 @@ define(['require', 'exports', 'module', 'watcher', 'Waves', 'template', "dynamic
         watcher.activeFolder(msg.folders.active);
     })
 
-
+    watcher.listen("deleteFolder",(msg)=>{
+        hideMenu()
+        let oldlenth = domList.length;
+        if(msg.code ===0){
+          let index = indexMap[MenuCommands.id];
+          lg("delete index of " +index +"folders",domList[index])
+          F.folders.removeChild(F.folders.children[index]);
+          domList.splice(index,1);
+          lg("current domList is %O",domList);
+          setTimeout(()=>{
+            if(domList.length>=oldlenth){
+              alert("oprations failed!")
+            }
+          },300)
+        }else{
+          alert(msg.info)
+        }
+        lg(msg.info)
+    })
 
     function initPage() {
 
@@ -152,12 +170,42 @@ define(['require', 'exports', 'module', 'watcher', 'Waves', 'template', "dynamic
 
     }
 
+    let MenuCommands = {
+        id:undefined,
+        delete: ()=> {
+            lg("MenuCommands delete id is :" + MenuCommands.id);
+            watcher.send({
+                intent: ["deleteFolder"],
+                params: {
+                    fid: MenuCommands.id
+                }
+            });
+        }
+    }
+
+    function hideMenu() {
+        lg("hide Menu");
+        dynamics.animate(F.folder_menu, {
+            opacity: 0,
+            scale: .1
+        }, {
+            type: dynamics.easeInOut,
+            duration: 300,
+            friction: 100,
+            complete: function() {
+                dynamics.css(F.folder_menu, {
+                    top: -5555,
+                    left: -5555
+                })
+            }
+        })
+    }
 
 
 
     function dom() {
         //  click folder
-        F.folders.addEventListener("click", function (e) {
+        F.folders.addEventListener("click", function(e) {
             if (!e.isTrusted) return false;
             if (status.saved == false) {
                 watcher.trigger("unsaved");
@@ -208,7 +256,7 @@ define(['require', 'exports', 'module', 'watcher', 'Waves', 'template', "dynamic
                 watcher.send({
                     intent: ["getPosts"],
                     params: {
-                        fid:status.id_folder,
+                        fid: status.id_folder,
                         pid: null
                     }
                 });
@@ -219,7 +267,7 @@ define(['require', 'exports', 'module', 'watcher', 'Waves', 'template', "dynamic
 
 
 
-        F.folders.addEventListener('dblclick', function (e) {
+        F.folders.addEventListener('dblclick', function(e) {
             if (!e.isTrusted) return false;
             e.preventDefault();
             var el = e.target,
@@ -254,14 +302,14 @@ define(['require', 'exports', 'module', 'watcher', 'Waves', 'template', "dynamic
             input.setSelectionRange(value.length, value.length);
 
             //when press enter ,make the input blur
-            input.addEventListener("keypress", function (e) {
-                    if (!e.isTrusted) return false;
-                    if (e.keyCode == 13) {
-                        input.blur();
-                    }
-                })
-                //when blur, change the input back to span element
-            input.addEventListener("blur", function (e) {
+            input.addEventListener("keypress", function(e) {
+                if (!e.isTrusted) return false;
+                if (e.keyCode == 13) {
+                    input.blur();
+                }
+            })
+            //when blur, change the input back to span element
+            input.addEventListener("blur", function(e) {
                 if (!e.isTrusted) return false;
                 var el = e.target,
                     li = el.parentElement;
@@ -277,13 +325,92 @@ define(['require', 'exports', 'module', 'watcher', 'Waves', 'template', "dynamic
 
         });
 
+        F.folders.addEventListener("contextmenu", (e) => {
+            let target = e.target,
+                tagName = target.tagName;
+            lg("on folder contextmenu event:\n%O,tagName is:", e, tagName);
 
+            if (!((target.classList.contains("new-folder")) || (["js-new-folder", "js-folders-ul"].indexOf(target.id) != -1))) {
+                e.preventDefault();
+                //calulate index of this element
+
+                switch (tagName.toLowerCase()) {
+                    case "span":
+                        MenuCommands.id = target.parentElement.dataset.id;
+                        break;
+                    case "li":
+                        MenuCommands.id = target.dataset.id;
+                        break;
+                }
+
+
+                let x = e.pageX,
+                    y = e.pageY;
+                let items = F.folder_menu.firstElementChild.children;
+
+                //show menu
+                dynamics.css(F.folder_menu, {
+                    opacity: 1,
+                    left: x,
+                    top: y
+                })
+                dynamics.animate(F.folder_menu, {
+                    scale: 1,
+                    translateY: 0
+                }, {
+                    type: dynamics.spring,
+                    frequency: 200,
+                    friction: 270,
+                    duration: 800
+                })
+                for (var i = 0; i < items.length; i++) {
+                    var item = items[i]
+                    // Define initial properties
+                    dynamics.css(item, {
+                        opacity: 0,
+                        translateY: 20
+                    })
+                    // Animate to final properties
+                    dynamics.animate(item, {
+                        opacity: 1,
+                        translateY: 0
+                    }, {
+                        type: dynamics.spring,
+                        frequency: 300,
+                        friction: 435,
+                        duration: 1000,
+                        delay: 100 + i * 40
+                    })
+                }
+
+                //after show menu
+                function handleClickEvent(e) {
+                    lg("hadle contextmenu event")
+                    let target = e.target;
+                    let command = target.dataset.command || (target.firstElementChild && target.firstElementChild.dataset.command);
+                    if (command) {
+                        lg("command is:" + command);
+
+                        MenuCommands[command] && MenuCommands[command]();
+                    } else {
+                        hideMenu()
+                        window.removeEventListener("click", handleClickEvent);
+                    }
+                }
+
+
+                window.addEventListener("click", handleClickEvent)
+
+            } else {
+                lg("not contextmenu")
+            }
+        }) //contextmenu event
 
 
         //
         //     drag event ul_folders
         //
-        F.folders.addEventListener("dragstart", function (e) {
+        F.folders.addEventListener("dragstart", function(e) {
             if (!e.isTrusted) return false;
             if (watcher.tag(e.target.children[0]) == "input" || watcher.tag(e.target) == "input") {
                 e.preventDefault();
@@ -297,13 +424,13 @@ define(['require', 'exports', 'module', 'watcher', 'Waves', 'template', "dynamic
 
         })
 
-        F.folders.addEventListener("dragover", function (e) {
+        F.folders.addEventListener("dragover", function(e) {
             if (!e.isTrusted) return false;
             e.dataTransfer.dropEffect = "move";
             e.preventDefault();
         });
 
-        F.folders.addEventListener("drop", function (e) {
+        F.folders.addEventListener("drop", function(e) {
             if (!e.isTrusted) return false;
 
             e.preventDefault();
@@ -323,7 +450,7 @@ define(['require', 'exports', 'module', 'watcher', 'Waves', 'template', "dynamic
             }
             // else
             var el = e.target,
-                getNewNode = function () {
+                getNewNode = function() {
                     return F.temp.parentElement.removeChild(F.temp);
                 },
                 oldIndex = indexMap[F.temp.dataset["id"]],

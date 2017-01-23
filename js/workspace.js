@@ -1,4 +1,4 @@
-define(['require', 'exports', 'module', 'watcher', 'dynamics'], function (require, exports, module, watcher, dynamics) {
+define(['require', 'exports', 'module', 'watcher', 'dynamics'], function(require, exports, module, watcher, dynamics) {
     'use strict';
 
 
@@ -35,14 +35,20 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics'], function (requir
     watcher.listen("saveContentSuccess", (msg) => {
         watcher.saved()
     })
+    watcher.listen("NoPost", () => {
+        W.textarea.value = "";
+        W.MDworker.postMessage("");
+        W.word_count.textContent = W.getWordsNum("");
+        W.textarea.setAttribute("readonly",true)
+    })
 
 
     /*
-            subscribe renderPost 
+            subscribe renderPost
     */
     watcher.listen("renderContent", (msg) => {
         let value = msg.content.value;
-
+        W.textarea.removeAttribute("readonly");
         W.textarea.value = value ? value : "";
         W.MDworker.postMessage(value);
         W.word_count.textContent = W.getWordsNum(value);
@@ -53,7 +59,9 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics'], function (requir
              saveContent
     */
     watcher.listen("saveContent", () => {
-
+        if (status.Nopost) {
+            return;
+        }
         let content = W.textarea.value;
         if (content == status.post.value) {
             watcher.saved();
@@ -82,7 +90,7 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics'], function (requir
     }, 1200, true);
 
     /*
-        (String content)-> number of charactors 
+        (String content)-> number of charactors
     */
     W.getWordsNum = (content) => {
         if (content) {
@@ -159,8 +167,6 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics'], function (requir
                 e.preventDefault();
                 watcher.trigger("saveContent");
             }
-
-
         });
         /**
          *      save   btn
@@ -169,7 +175,7 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics'], function (requir
             watcher.trigger("saveContent");
         });
         /*
-                open & close preview aside 
+                open & close preview aside
         */
 
         W.preview_btn.addEventListener("click", switchMode);
@@ -197,7 +203,7 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics'], function (requir
 
         //if click
         if (typeof e == 'object') {
-            if(init == true)init =false;
+            if (init == true) init = false;
             index = ((i + 1) % 3);
         } else {
 
@@ -233,7 +239,7 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics'], function (requir
                         opacity: 1,
                         paddingRight: 15
                     })
-                    if(!init)W.sendToWorker(W.textarea.value);
+                    if (!init) W.sendToWorker(W.textarea.value);
                     break;
                 }
             case 2:
@@ -262,7 +268,7 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics'], function (requir
 
         W.MDworker = new Worker("./MDworker.js");
 
-        W.MDworker.onmessage = function (e) {
+        W.MDworker.onmessage = function(e) {
             if (!e.isTrusted) return false;
             W.preview.innerHTML = "";
             W.preview.insertAdjacentHTML("afterBegin", e.data);

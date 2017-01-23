@@ -205,12 +205,11 @@ define(['require', 'exports', 'module', 'LS'], function (require, exports, modul
      * pretent we have a serviceWorker
      */
 
-    var serviceWorker = new Worker("/apps/sw.js");
+    var serviceWorker = new Worker("./sw.js");
 
     serviceWorker.onmessage = function (e) {
         if (typeof e.data == "string") {
             let msg = JSON.parse(e.data);
-            console.log(msg);
             for (let i = 0; i < msg.intent.length; i++) {
                 W.trigger(msg.intent[i], msg)
             }
@@ -231,7 +230,7 @@ define(['require', 'exports', 'module', 'LS'], function (require, exports, modul
 
 
     /**
-     * fullscreenchange function 
+     * fullscreenchange function
      **/
     function fullscreenchange(e) {
         if (!e.isTrusted) return false;
@@ -247,6 +246,6 @@ define(['require', 'exports', 'module', 'LS'], function (require, exports, modul
     document.addEventListener("webkitfullscreenchange", fullscreenchange);
     document.addEventListener("msfullscreenchange", fullscreenchange);
 
-    ///ie 
+    ///ie
 
 });

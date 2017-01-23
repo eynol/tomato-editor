@@ -13,7 +13,9 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics', 'Waves'], functio
     }
 
 
+    function updateTime(){
 
+    }
     function btn_hide() {
         dynamics.animate(btn, {
             translateX: 60,
@@ -76,7 +78,7 @@ define(['require', 'exports', 'module', 'watcher', 'dynamics', 'Waves'], functio
         var thescreen = document.getElementsByClassName("locker-main")[0];
 
         dynamics.animate(thescreen, {
-                translateY: "100vh"
+                translateY: "125vh"
             }, {
                 type: dynamics.bezier,
                 duration: 1500,

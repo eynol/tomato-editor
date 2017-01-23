@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
 	<title>text editor</title>
@@ -26,7 +26,7 @@
 		l = arr.length;
 		for(;i<l;i++){
 			if(!arr[i]){
-				throw new Error("Your browser did't have "+arr[i])	
+				throw new Error("Your browser did't have "+arr[i])
 			}
 		}
 	}catch(e){
@@ -160,7 +160,7 @@
                             <a href="javascript:;"  title="重做(Ctrl+Y)" id="js-o-redo"><i class="fa fa-repeat"></i></a>
                             <a href="javascript:;"  title="历史纪录" id="js-o-history"><i class="fa fa-clock-o"></i></a>
                             <a href="javascript:;"  title="打开预览" id="js-o-preview"><i class="fa fa-columns"></i></a>
-                            <a href="javascript:;"  title="飞行模式" id="js-o-air-mode"><i class="fa fa-plane"></i></a>   
+                            <a href="javascript:;"  title="飞行模式" id="js-o-air-mode"><i class="fa fa-plane"></i></a>
                         </span>
 					</p>
 				</div>
@@ -171,7 +171,19 @@
 			</div>
 		</div>
 	</div>
+
+	<div class="folder-menu menu-tk" id="js-folder-menu">
+		<ul>
+			<li><a href="javascript:;" data-command="delete">删除</a></li>
+		</ul>
+	</div>
+	<div class="post-menu menu-tk" id="js-post-menu">
+		<ul>
+			<li><a href="javascript:;" data-command="delete">删除</a></li>
+			<li><a href="javascript:;" data-command="export">导出</a></li>
+		</ul>
+	</div>
+
 </body>
 <script type="text/javascript" data-main="js/app" src="./bower_components/requirejs/require.js"></script>
-
 </html>

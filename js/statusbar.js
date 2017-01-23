@@ -31,6 +31,9 @@ define(['require', 'exports', 'module', 'watcher'], function (require, exports, 
 
 
 
+        function addZore(n){
+          return n<10?"0"+n:n;
+        }
 
     B.init = () => {
         bindBatteryManager();
@@ -38,7 +41,7 @@ define(['require', 'exports', 'module', 'watcher'], function (require, exports, 
             var now = new Date(),
                 hour = now.getHours(),
                 minute = now.getMinutes();
-            time.innerText = hour + ":" + minute;
+            time.innerText = addZore(hour) + ":" + addZore(minute);
             time.setAttribute("title", now.toLocaleTimeString())
 
         }, 999)
@@ -53,13 +56,13 @@ define(['require', 'exports', 'module', 'watcher'], function (require, exports, 
                 BM.onchargingchange = (e) => {
                     batteryStatus.charging = e.target.charging;
                     batteryStatus.updateStatus();
-                    console.log("charging change:", battery_fa);
+                    lg("charging change:", battery_fa);
 
                 }
                 BM.onlevelchange = (e) => {
                     batteryStatus.level = e.target.level;
                     batteryStatus.updateStatus();
-                    console.log("level change", battery_fa);
+                    lg("level change", battery_fa);
                 }
             })
         } else {
