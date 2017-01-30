@@ -172,12 +172,14 @@ define(['require', 'exports', 'module', 'watcher', 'Waves', 'template', "dynamic
 
     let MenuCommands = {
         id:undefined,
+        index:undefined,
         delete: ()=> {
-            lg("MenuCommands delete id is :" + MenuCommands.id);
+            lg("MenuCommands delete id is :" + MenuCommands.id +"index is "+MenuCommands.index);
             watcher.send({
                 intent: ["deleteFolder"],
                 params: {
-                    fid: MenuCommands.id
+                    fid: MenuCommands.id,
+                    index: MenuCommands.index
                 }
             });
         }
@@ -337,9 +339,11 @@ define(['require', 'exports', 'module', 'watcher', 'Waves', 'template', "dynamic
                 switch (tagName.toLowerCase()) {
                     case "span":
                         MenuCommands.id = target.parentElement.dataset.id;
+                        MenuCommands.index = indexMap[MenuCommands.id];
                         break;
                     case "li":
                         MenuCommands.id = target.dataset.id;
+                        MenuCommands.index = indexMap[MenuCommands.id];
                         break;
                 }
 
